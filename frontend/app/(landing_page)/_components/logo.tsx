@@ -13,7 +13,7 @@ export const Logo = () => {
     <div className="hidden md:flex items-center gap-x-2">
       <div className="rounded-full overflow-hidden">
         <Image
-          src="/logo.png"
+          src="/images/logo.jpeg"
           height="50"
           width="50"
           alt="Logo"
@@ -21,7 +21,7 @@ export const Logo = () => {
         />
       </div>
       <p className={cn("font-semibold", font.className)}>
-        Recipeasy
+        Survey Buddy
       </p>
     </div>
   )
