@@ -24,6 +24,6 @@ def qna():
 
 @router.get("/rag")
 def rag():
-    pred = Compile().compiled_RAG(question=QUESTIONS[-1])
+    compile_class = Compile()
+    pred = compile_class.compiled_RAG.remote(question=QUESTIONS[-1])
     return {"message": pred.answer}
-

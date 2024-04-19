@@ -15,17 +15,16 @@ class GenerateAnswer(dspy.Signature):
     answer = dspy.OutputField(desc="often between 1 and 5 words")
     print("CLASS Initialized: GenerateAnswer")
 
+
 class RAG(dspy.Module):
     def __init__(self, num_passages=3):
         super().__init__()
 
         self.retrieve = dspy.Retrieve(k=num_passages)
         self.generate_answer = dspy.ChainOfThought(GenerateAnswer)
-        print("CLASS Initialized: RAG")
 
     def forward(self, question):
-        print("question:", question)
+        print("question: ", question)
         context = self.retrieve(question).passages
-        print("context:", context)
         prediction = self.generate_answer(context=context, question=question)
         return dspy.Prediction(context=context, answer=prediction.answer)

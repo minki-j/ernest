@@ -3,13 +3,13 @@ from fastapi.routing import APIRoute
 
 from app.api.main import api_router
 from app.common import stub, image
-from app.utils.dspy_initialize import check_dspy
+from app.utils.dspy_initialize import initialize_dspy
 
 from modal import Image, asgi_app, Secret
 
 app = FastAPI()
 
-app.add_middleware(check_dspy)
+app.add_middleware(initialize_dspy)
 
 app.include_router(api_router)
 

@@ -1,8 +1,8 @@
 import dspy
 
 
-def check_dspy(app):
-    print("Middleware: Checking dspy configuration")
+def initialize_dspy(app=None):
+    print("Checking dspy configuration")
 
     if not dspy.settings.lm or not dspy.settings.rm:
         print(
@@ -27,4 +27,5 @@ def check_dspy(app):
     else:
         print("\033[92m dspy configuration already set \033[0m")
 
-    return app
+    if app:
+        return app
