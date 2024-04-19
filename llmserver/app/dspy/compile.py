@@ -1,16 +1,42 @@
-from modal import enter, method
+import modal
+from modal import enter, method, build, exit
 from app.common import stub, image
 from app.dspy.signatures import RAG
-# import dspy
-# from dspy.teleprompt import BootstrapFewShot
+import dspy
+from dspy.teleprompt import BootstrapFewShot
+from dspy.datasets import HotPotQA
+import pickle
+import os
 
-@stub.cls(image=image)
+vol = modal.Volume.from_name("survey-buddy")
+
+@stub.cls(image=image, volumes={"/my_vol": modal.Volume.from_name("survey-buddy")})
 class Compile:
-    @enter()
-    def run_this_on_container_startup(self):
-        import dspy
+    def __init__(self):
         self.compile_RAG = None
-        self.trainset = None
+        self.trainset_path = "/my_vol/dataset/compile_rag/trainset.pickle"
+
+    @build()
+    @enter()
+    def download_dataset(self):
+        if os.path.exists(self.trainset_path):
+            print("Loading dataset from volume")
+            self.trainset = pickle.load(
+                open(self.trainset_path, "rb")
+            )
+        else:
+            print("Downloading dataset")
+            dataset = HotPotQA(
+                train_seed=1, train_size=20, eval_seed=2023, dev_size=50, test_size=0
+            )
+
+            self.trainset = [x.with_inputs("question") for x in dataset.train]
+
+            # save the trainset to disk
+            os.makedirs(os.path.dirname(self.trainset_path), exist_ok=True)
+            with open(self.trainset_path, "wb", ) as f:
+                pickle.dump(self.trainset, f)
+            vol.commit()
 
     # Validation logic: check that the predicted answer is correct.
     # Also check that the retrieved context does actually contain that answer.
@@ -21,17 +47,16 @@ class Compile:
 
     @method()
     def compile(self, module_name: str):
-        print("Downloading dataset...")
-        dataset = dspy.datasets.HotPotQA(train_seed=1, train_size=20, eval_seed=2023, dev_size=50, test_size=0)
-        self.trainset = [x.with_inputs("question") for x in dataset.train]
-
         print("Checking module name ", module_name)
         if module_name == "rag":
             # Set up a basic teleprompter, which will compile our RAG program.
-            teleprompter = dspy.teleprompt.BootstrapFewShot(metric=self.validate_context_and_answer)
+            teleprompter = dspy.teleprompt.BootstrapFewShot(
+                metric=self.validate_context_and_answer
+            )
+            
+            print("RM: ", dspy.settings.rm)
 
-            # Compile!
-            compiled_rag = teleprompter.compile(RAG(), trainset=self.trainset)
+            self.compile_RAG = teleprompter.compile(RAG(), trainset=self.trainset)
             return {"message": "Module compiled successfully!"}
 
     @method()
@@ -39,12 +64,3 @@ class Compile:
         if self.compile_RAG is None:
             self.compile_RAG = dspy.Predict(RAG)
         return self.compile_RAG(question=question)
-
-# # Load the dataset.
-# dataset = HotPotQA(
-#     train_seed=1, train_size=20, eval_seed=2023, dev_size=50, test_size=0
-# )
-
-# # Tell DSPy that the 'question' field is the input. Any other fields are labels and/or metadata.
-# trainset = [x.with_inputs("question") for x in dataset.train]
-# devset = [x.with_inputs("question") for x in dataset.dev]

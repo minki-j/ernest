@@ -8,6 +8,8 @@ from app.common import stub
 from app.public.questions import QUESTIONS
 from app.api.routes.compile import Compile
 
+import dspy
+
 router = APIRouter()
 
 @router.get("/")
