@@ -1,11 +1,9 @@
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
 
 from app.api.main import api_router
 from app.common import stub, image
-from app.utils.dspy_initialize import initialize_dspy
 
-from modal import Image, asgi_app, Secret
+from modal import asgi_app, Secret
 
 app = FastAPI()
 
@@ -13,8 +11,6 @@ app = FastAPI()
 
 app.include_router(api_router)
 
-
-# return the FastAPI app in a modal function
 @stub.function(
     image=image,
     gpu=False,
@@ -26,4 +22,5 @@ app.include_router(api_router)
 )
 @asgi_app()
 def fastapi_app():
+    print("Starting FastAPI app")
     return app

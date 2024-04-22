@@ -16,7 +16,11 @@ vol = modal.Volume.from_name("survey-buddy")
 @stub.cls(
     image=image,
     volumes={"/my_vol": modal.Volume.from_name("survey-buddy")},
-    secrets=[Secret.from_name("OPENAI_API_KEY")],
+    secrets=[
+        Secret.from_name("OPENAI_API_KEY"),
+        Secret.from_name("Monogo DB connection password"),
+        Secret.from_name("my-twilio-secret"),
+    ],
 )
 class Compile:
     def __init__(self):
