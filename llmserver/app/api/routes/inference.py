@@ -27,3 +27,9 @@ def rag():
     compile_class = Compile()
     pred = compile_class.compiled_RAG.remote(question=QUESTIONS[-1])
     return {"message": pred.answer}
+
+@router.get("/hop/{max_hops}")
+def hop(max_hops: int):
+    compile_class = Compile()
+    pred = compile_class.multi_hop.remote(question=QUESTIONS[-1], max_hops=max_hops)
+    return {"message": pred.answer}

@@ -9,7 +9,7 @@ from modal import Image, asgi_app, Secret
 
 app = FastAPI()
 
-app.add_middleware(initialize_dspy)
+# app.add_middleware()
 
 app.include_router(api_router)
 

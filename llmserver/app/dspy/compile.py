@@ -1,7 +1,7 @@
 import modal
 from modal import enter, method, build, exit, Secret
 from app.common import stub, image
-from app.dspy.signatures import RAG
+from app.dspy.signatures import RAG, SimplifiedBaleen
 import dspy
 from dspy.teleprompt import BootstrapFewShot
 from dspy.datasets import HotPotQA
@@ -23,6 +23,13 @@ class Compile:
         self.trainset_path = "/my_vol/dataset/compile_rag/trainset.pickle"
         self.compiled_module_path = "/my_vol"
 
+    @build()
+    @enter()
+    def build_and_enter(self):
+        self.load_compiled_rag()
+        self.load_compiled_multi_hop()
+        # self.download_dataset()
+
     def load_compiled_rag(self):
         if os.path.exists(os.path.join(self.compiled_module_path, "rag.json")):
             print("Loading compiled RAG from volume")
@@ -31,14 +38,13 @@ class Compile:
         else:
             self.compile_RAG = None
 
-    @build()
-    @enter()
+    def load_compiled_multi_hop(self):
+        self.compile_multi_hop = None
+
     def download_dataset(self):
         if os.path.exists(self.trainset_path):
             print("Loading dataset from volume")
-            self.trainset = pickle.load(
-                open(self.trainset_path, "rb")
-            )
+            self.trainset = pickle.load(open(self.trainset_path, "rb"))
         else:
             print("Downloading dataset")
             dataset = HotPotQA(
@@ -49,11 +55,12 @@ class Compile:
 
             # save the trainset to disk
             os.makedirs(os.path.dirname(self.trainset_path), exist_ok=True)
-            with open(self.trainset_path, "wb", ) as f:
+            with open(
+                self.trainset_path,
+                "wb",
+            ) as f:
                 pickle.dump(self.trainset, f)
             vol.commit()
-
-        self.load_compiled_rag()
 
     # Validation logic: check that the predicted answer is correct.
     # Also check that the retrieved context does actually contain that answer.
@@ -73,24 +80,40 @@ class Compile:
 
             initialize_dspy()
 
-            print("RM: ", dspy.settings.rm)
-
+            print("Starting to compile")
             self.compile_RAG = teleprompter.compile(RAG(), trainset=self.trainset)
 
         # save the compiled module to disk
         os.makedirs(os.path.dirname(self.compiled_module_path), exist_ok=True)
-        print(os.listdir("/my_vol"))
+        print("file in /my_vol: ", os.listdir("/my_vol"))
         self.compile_RAG.save("/my_vol/rag.json")
-        # self.compile_RAG.save(os.path.join(self.compiled_module_path, module_name + ".json"))
         vol.commit()
 
         return {"message": "Module compiled successfully!"}
 
     @method()
     def compiled_RAG(self, question: str):
-        initialize_dspy()
-        print("function call: compiled_RAG")
-        if self.compile_RAG is None:
-            self.compile_RAG = dspy.Predict(RAG)
+        print("Function call on <compiled_RAG>")
 
-        return self.compile_RAG(question=question)
+        lm, rm = initialize_dspy()
+
+        if self.compile_RAG is None:
+            self.compile_RAG = RAG()
+
+        pred = self.compile_RAG(question=question)
+
+        print("lm history: ", lm.inspect_history(1))
+        return pred
+
+    @method()
+    def multi_hop(self, question: str, max_hops: int):
+        lm, rm = initialize_dspy()
+
+        if self.compile_multi_hop is None:
+            self.compile_multi_hop = SimplifiedBaleen(max_hops=max_hops)
+
+        pred = self.compile_multi_hop(question=question)
+
+        print("lm history: ", lm.inspect_history(max_hops + 1))
+
+        return pred
