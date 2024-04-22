@@ -13,11 +13,16 @@ app = FastAPI()
 
 app.include_router(api_router)
 
+
 # return the FastAPI app in a modal function
 @stub.function(
     image=image,
     gpu=False,
-    secrets=[Secret.from_name("OPENAI_API_KEY")],
+    secrets=[
+        Secret.from_name("OPENAI_API_KEY"),
+        Secret.from_name("Monogo DB connection password"),
+        Secret.from_name("my-twilio-secret"),
+    ],
 )
 @asgi_app()
 def fastapi_app():
