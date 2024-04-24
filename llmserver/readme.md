@@ -2,7 +2,7 @@
 
 Running ephemeral server
 From the root directory
-modal serve llmserver.inference
+modal serve inference
 
 
 To add secret variable, use dashboard 

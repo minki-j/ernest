@@ -1,10 +1,4 @@
-import dspy
-from dspy.datasets import HotPotQA
-from dspy.teleprompt import BootstrapFewShot
-
-from app.dspy.validations import validate_context_and_answer
-from app.dspy.signatures import RAG
-from app.dspy.compile import Compile
+from app.dspy.optimizers.compile import Compile
 
 from fastapi import APIRouter
 

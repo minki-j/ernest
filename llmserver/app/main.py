@@ -1,17 +1,17 @@
 from fastapi import FastAPI
 
 from app.api.main import api_router
-from app.common import stub, image
+from app.common import app, image
 
 from modal import asgi_app, Secret
 
-app = FastAPI()
+web_app = FastAPI()
 
-# app.add_middleware()
+# fastapi_app.add_middleware()
 
-app.include_router(api_router)
+web_app.include_router(api_router)
 
-@stub.function(
+@app.function(
     image=image,
     gpu=False,
     secrets=[
@@ -21,6 +21,6 @@ app.include_router(api_router)
     ],
 )
 @asgi_app()
-def fastapi_app():
+def fastapi_asgi():
     print("Starting FastAPI app")
-    return app
+    return web_app

@@ -3,8 +3,7 @@ from modal import Image
 
 from fastapi import APIRouter
 
-from app.dspy.signatures import GenerateAnswer, RAG
-from app.common import stub
+from app.dspy.signatures.signatures import GenerateAnswer, RAG
 from app.public.questions import QUESTIONS
 from app.api.routes.compile import Compile
 

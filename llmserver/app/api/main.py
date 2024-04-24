@@ -1,7 +1,6 @@
 from fastapi import APIRouter
 
 from app.api.routes import conversation, inference, compile
-from app.common import stub
 
 api_router = APIRouter()
 api_router.include_router(
