@@ -10,15 +10,15 @@ class IntentClassifier(dspy.Module):
 
         load_compiled_module_if_exists(self, "intent_classifier")
 
-        self.generate_chat_reply = dspy.Predict(Classifier)
+        self.classify_intent = dspy.Predict(Classifier)
         print("Class Initialized : IntentClassifier")
 
     def forward(self, question, options=None, context=None):
 
-        pred = self.generate_chat_reply(
+        pred = self.classify_intent(
             context=context,
             question=question,
             options=options,
         )
 
-        return dspy.Prediction(reply=pred.answer)
+        return dspy.Prediction(answer=pred.answer)

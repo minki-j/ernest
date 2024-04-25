@@ -36,6 +36,7 @@ class CompileIntentClassifier:
     @method()
     def compile(self):
 
+        
         teleprompter = BootstrapFewShot(
             metric=validate_intent_classifcation
         )

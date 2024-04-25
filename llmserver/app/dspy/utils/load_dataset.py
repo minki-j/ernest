@@ -32,6 +32,7 @@ def load_dataset(self, dataset_name):
     else:
         print("Downloading dataset")
         self.trainset = fetch_dataset(dataset_name)
+        print(f"==>> self.trainset[0]: {self.trainset[0]}")
 
         # save the trainset to disk
         os.makedirs(os.path.dirname(dataset_directory_path), exist_ok=True)
@@ -48,8 +49,9 @@ def fetch_dataset(dataset_name):
     if dataset_name == "intent_classifier":
         dataset = hf_load_dataset("Bhuvaneshwari/intent_classification")
 
-        #conver the key value of "text" to "question"
+        #convert the key value of "text" to "question"
         dataset = dataset.map(lambda x: {"question": x["text"]})
+        dataset = dataset.remove_columns(["text"])
 
         # convert the dataset to a list of Example objects from dspy
         trainset = [Example(base=x) for x in list(dataset["train"])]

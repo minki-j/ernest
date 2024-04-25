@@ -11,6 +11,7 @@ image = (
         "python-multipart",
         "transformers",
         "huggingface_hub",
+        "anthropic",
     )
     .run_commands("pip install --upgrade fastapi pydantic")
 )
