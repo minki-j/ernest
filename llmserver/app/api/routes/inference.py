@@ -1,13 +1,11 @@
-import os
-from modal import Image
-
-from fastapi import APIRouter
-
-from app.dspy.signatures.signatures import GenerateAnswer, RAG
-from app.public.questions import QUESTIONS
-from app.api.routes.compile import Compile
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 
 import dspy
+from app.public.questions import QUESTIONS
+from app.dspy.signatures.signatures import GenerateAnswer
+from app.dspy.modules.rag import RAG
+from app.dspy.modules.intent_classifier import IntentClassifier
 
 router = APIRouter()
 
@@ -23,12 +21,22 @@ def qna():
 
 @router.get("/rag")
 def rag():
-    compile_class = Compile()
-    pred = compile_class.compiled_RAG.remote(question=QUESTIONS[-1])
+    rag = RAG()
+    pred = rag(question=QUESTIONS[-1])
     return {"message": pred.answer}
 
-@router.get("/hop/{max_hops}")
-def hop(max_hops: int):
-    compile_class = Compile()
-    pred = compile_class.multi_hop.remote(question=QUESTIONS[-1], max_hops=max_hops)
+
+class IntentClassifierRequest(BaseModel):
+    question: str
+
+@router.post("/intent_classifier")
+async def intent_classifier(request: IntentClassifierRequest):
+    question = request.question
+    print("Question: ", question)
+
+    if not question:
+        raise HTTPException(status_code=400, detail="No question provided.")
+
+    intent_classifier = IntentClassifier()
+    pred = intent_classifier(question="")
     return {"message": pred.answer}
