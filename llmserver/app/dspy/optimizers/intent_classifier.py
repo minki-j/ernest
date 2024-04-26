@@ -15,12 +15,12 @@ from app.dspy.utils.load_dataset import load_dataset
 
 
 vol = Volume.from_name("survey-buddy")
-vol_path = "/my_vol/"
+VOL_DIR = "/my_vol"
 
 
 @app.cls(
     image=image,
-    volumes={vol_path: Volume.from_name("survey-buddy")},
+    volumes={VOL_DIR: Volume.from_name("survey-buddy")},
     secrets=[
         Secret.from_name("OPENAI_API_KEY"),
         Secret.from_name("my-anthropic-secret"),
@@ -30,8 +30,8 @@ vol_path = "/my_vol/"
 class CompileIntentClassifier:
     def __init__(self):
         load_dataset(self, "intent_classifier")
-        self.trainset_directory_path = os.path.join(vol_path, "dataset")
-        self.compiled_module_path = os.path.join(vol_path, "compiled_modules")
+        self.trainset_directory_path = os.path.join(VOL_DIR, "dataset")
+        self.compiled_module_path = os.path.join(VOL_DIR, "compiled_modules")
 
     @method()
     def compile(self):
