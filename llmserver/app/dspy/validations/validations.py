@@ -14,11 +14,13 @@ def validate_context_and_answer(example, pred, trace=None):
 
 def validate_intent_classifcation(example, pred, trace=None):
     anthropic_haiku = dsp.Claude(model="claude-3-haiku-20240307")
-    with dspy.context(lm=anthropic_haiku):
 
-        print("\033[92m" + "gold_intent: " + example["question"] + "\033[0m")
+    with dspy.context(lm=anthropic_haiku):
         pred = dspy.Predict(AssessIntentClassification)(
-            gold_intent=example["question"],
-            pred=pred.answer,
+            gold_intent=example["intent"],
+            predicted_intent=pred.intent,
         )
-    return pred.score
+
+    result = True if pred.is_correct.lower().split(" ")[0].strip() == "true" else False
+
+    return result

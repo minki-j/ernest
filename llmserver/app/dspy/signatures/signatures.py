@@ -26,19 +26,21 @@ class GenerateChatReply(dspy.Signature):
     reply = dspy.OutputField()
 
 
-class Classifier(dspy.Signature):
-    """Classify the given input."""
+class IntentClassifier(dspy.Signature):
+    """Classify the given input's intent."""
 
     context = dspy.InputField(desc="may contain relevant facts")
     question = dspy.InputField(desc="the text to be classified")
-    options = dspy.InputField(desc="multiple choice options")
-    answer = dspy.OutputField(desc="the correct option")
-    print("Class Initialized: Classifier")
+    options = dspy.InputField(desc="may contain multiple choice options for possible intents")
+    intent = dspy.OutputField(desc="the correct option of intent. must be the text not the index or option index.")
+    print("Class Initialized: IntentClassifier")
 
 class AssessIntentClassification(dspy.Signature):
-    """Assess the intent classification task."""
+    """Assess the intent classification task. Answer succinctly whether the predicted intent is correct. Do not repeat the question."""
 
     gold_intent = dspy.InputField(desc="the correct intent")
-    pred = dspy.InputField(desc="the predicted intent")
-    score = dspy.OutputField(desc="the score of the prediction (0 or 1)")
+    predicted_intent = dspy.InputField(desc="the predicted intent")
+    is_correct = dspy.OutputField(
+        desc='''return "true" if gold_intent and pred share the same meaning, "false" if they differ. do not repeat the question.'''
+    )
     print("Class Initialized : AssessIntentClassification")

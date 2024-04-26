@@ -32,7 +32,6 @@ def load_dataset(self, dataset_name):
     else:
         print("Downloading dataset")
         self.trainset = fetch_dataset(dataset_name)
-        print(f"==>> self.trainset[0]: {self.trainset[0]}")
 
         # save the trainset to disk
         os.makedirs(os.path.dirname(dataset_directory_path), exist_ok=True)

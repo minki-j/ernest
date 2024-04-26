@@ -1,19 +1,19 @@
 import dspy
 
-from app.dspy.signatures.signatures import Classifier
+from app.dspy.signatures.signatures import IntentClassifier
 from app.dspy.utils.load_compiled_module import load_compiled_module_if_exists
 
 
-class IntentClassifier(dspy.Module):
+class IntentClassifierModule(dspy.Module):
     def __init__(self):
         super().__init__()
 
         load_compiled_module_if_exists(self, "intent_classifier")
 
-        self.classify_intent = dspy.Predict(Classifier)
+        self.classify_intent = dspy.Predict(IntentClassifier)
         print("Class Initialized : IntentClassifier")
 
-    def forward(self, question, options=None, context=None):
+    def forward(self, question, options="not provided", context="not provided"):
 
         pred = self.classify_intent(
             context=context,
@@ -21,4 +21,8 @@ class IntentClassifier(dspy.Module):
             options=options,
         )
 
-        return dspy.Prediction(answer=pred.answer)
+        # print("---------lm.inspect_history-----------")
+        # print(dspy.settings.lm.inspect_history(n=1))
+        # print("---------lm.inspect_history-----------")
+
+        return dspy.Prediction(intent=pred.intent)
