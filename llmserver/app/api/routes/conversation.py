@@ -33,7 +33,7 @@ def reply_to_message(From: str = Form(...), Body: str = Form(...)):
     chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
     pred = chatbot.forward(user_info, previous_messages, user_message)
 
-    send_sms(pred.reply, user_phone_number)
+    # send_sms(pred.reply, user_phone_number)
 
     replied_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

@@ -64,6 +64,7 @@ class Llama3_8B_on_VLLM:
 
     @modal.enter()
     def load(self):
+        print("load llama3 8b model")
         self.template = "start_of_turn>user\n{user}<end_of_turn>\n<start_of_turn>model"
 
         # Load the model. Some models, like MPT, may require `trust_remote_code=true`.

@@ -11,7 +11,7 @@ class UserQuestionRequest(BaseModel):
 
 @router.post("/")
 def root(request: UserQuestionRequest):
-    print("Local LLM API /")
+    print("Local LLM API call: path root(/)")
     user_questions = [request.prompt]
     llama3_8b = Llama3_8B_on_VLLM()
     try:
@@ -19,5 +19,6 @@ def root(request: UserQuestionRequest):
     except:
         print("error in generating response")
         reply = "Error in generating response"
+        
     print(f"==>> reply: {reply}")
     return {"content": [{"text": reply}]}

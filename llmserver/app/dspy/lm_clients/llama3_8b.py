@@ -9,10 +9,8 @@ class Llama3_8b_Modal_Client(LM):
         self.history = []
         self.base_url = "https://jung0072--survey-buddy-fastapi-asgi-dev.modal.run/local_llm"
         self.kwargs ={}
-        print("Class Initialized: Llama3_8b_Modal_Client")
 
     def basic_request(self, prompt: str, **kwargs):
-        print("basic_request function called")
         headers = {"content-type": "application/json"}
 
         response = requests.post(
@@ -20,9 +18,9 @@ class Llama3_8b_Modal_Client(LM):
             headers=headers,
             json={"prompt": prompt},
         )
-        print("ran until here")
+
         response = response.json()
-        print("response: ", response)
+        print("Response from API call for local llama3: ", response)
 
         self.history.append(
             {
