@@ -30,7 +30,7 @@ def reply_to_message(From: str = Form(...), Body: str = Form(...)):
 
     user_info, previous_messages = fetch_chat_history(phone_number=user_phone_number)
 
-    chatbot = Chatbot()
+    chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
     pred = chatbot.forward(user_info, previous_messages, user_message)
 
     send_sms(pred.reply, user_phone_number)
