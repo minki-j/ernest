@@ -8,6 +8,7 @@ from bson.objectid import ObjectId
 
 
 def fetch_chat_history(phone_number: str) -> List[str]:
+    print("user_phone_number:", phone_number)
     uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
     client = MongoClient(uri, server_api=ServerApi('1'))
 
@@ -31,10 +32,9 @@ def fetch_chat_history(phone_number: str) -> List[str]:
     for msg in chat_history["messages"]:
         try:
             author_message_block = msg["author"] + ": " + msg["message"] + "\n"
+            previous_messages += author_message_block
         except:
-            print("no author or message from the message block")
-            author_message_block = ""
-        previous_messages += author_message_block
+            pass
 
     return user_info, previous_messages
 

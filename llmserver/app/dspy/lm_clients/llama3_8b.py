@@ -7,8 +7,10 @@ class Llama3_8b_Modal_Client(LM):
     def __init__(self):
         self.provider = "default"
         self.history = []
-        self.base_url = "https://jung0072--survey-buddy-fastapi-asgi-dev.modal.run/local_llm"
-        self.kwargs ={}
+        self.base_url = (
+            "https://jung0072--survey-buddy-fastapi-asgi.modal.run/local_llm"
+        )
+        self.kwargs = {}
 
     def basic_request(self, prompt: str, **kwargs):
         headers = {"content-type": "application/json"}
@@ -19,17 +21,19 @@ class Llama3_8b_Modal_Client(LM):
             json={"prompt": prompt},
         )
 
-        response = response.json()
-        print("Response from API call for local llama3: ", response)
-
-        self.history.append(
-            {
-                "prompt": prompt,
-                "response": response,
-                "kwargs": kwargs,
-            }
-        )
-        return response
+        if response.status_code >= 200 and response.status_code < 300:
+            response = response.json()
+            self.history.append(
+                {
+                    "prompt": prompt,
+                    "response": response["content"][0]["text"],
+                    "kwargs": kwargs,
+                }
+            )
+            return response
+        else:
+            print("response status code:", response.status_code)
+            return 
 
     def __call__(self, prompt, **kwargs):
         print("__call__ function called")

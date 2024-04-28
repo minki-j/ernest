@@ -6,8 +6,10 @@ from app.local_llms.llama3_8b_on_vllm import Llama3_8B_on_VLLM
 
 router = APIRouter()
 
+
 class UserQuestionRequest(BaseModel):
     prompt: str
+
 
 @router.post("/")
 def root(request: UserQuestionRequest):
@@ -15,10 +17,14 @@ def root(request: UserQuestionRequest):
     user_questions = [request.prompt]
     llama3_8b = Llama3_8B_on_VLLM()
     try:
-        reply = llama3_8b.generate.remote(user_questions)
+        replys = llama3_8b.generate.remote(user_questions)
     except:
         print("error in generating response")
-        reply = "Error in generating response"
-        
-    print(f"==>> reply: {reply}")
-    return {"content": [{"text": reply}]}
+        replys = ["Error in generating response"]
+
+    response = {"content": []}
+    for reply in replys:
+        response["content"].append({"text": reply})
+    print("response", response)
+
+    return response

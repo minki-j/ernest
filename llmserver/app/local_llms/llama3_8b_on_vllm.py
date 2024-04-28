@@ -2,6 +2,8 @@ import modal
 import os
 import time
 
+from app.common import app
+
 VOL_DIR = "/my_vol"
 MODEL_DIR = "/model"
 MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"
@@ -47,13 +49,13 @@ image = (
     )
 )
 
-app = modal.App(f"{MODEL_NAME}-vllm", image=image)
 
 with image.imports():
     import vllm
 
 
 @app.cls(
+    image=image,
     gpu=GPU_CONFIG,
     secrets=[modal.Secret.from_name("huggingface-secret")],
 )
@@ -64,7 +66,6 @@ class Llama3_8B_on_VLLM:
 
     @modal.enter()
     def load(self):
-        print("load llama3 8b model")
         self.template = "start_of_turn>user\n{user}<end_of_turn>\n<start_of_turn>model"
 
         # Load the model. Some models, like MPT, may require `trust_remote_code=true`.
@@ -80,9 +81,9 @@ class Llama3_8B_on_VLLM:
         prompts = [self.template.format(user=q) for q in user_questions]
 
         sampling_params = vllm.SamplingParams(
-            temperature=0.75,
+            temperature=1,
             top_p=0.99,
-            max_tokens=256,
+            max_tokens=100,
             presence_penalty=1.15,
         )
         start = time.monotonic_ns()
@@ -100,12 +101,12 @@ class Llama3_8B_on_VLLM:
 
         for output in result:
             num_tokens += len(output.outputs[0].token_ids)
-            print(
-                f"{COLOR['HEADER']}{COLOR['GREEN']}{output.prompt}",
-                f"\n{COLOR['BLUE']}{output.outputs[0].text}",
-                "\n\n",
-                sep=COLOR["ENDC"],
-            )
+            # print(
+            #     f"{COLOR['HEADER']}{COLOR['GREEN']}{output.prompt}",
+            #     f"\n{COLOR['BLUE']}{output.outputs[0].text}",
+            #     "\n\n",
+            #     sep=COLOR["ENDC"],
+            # )
             time.sleep(0.01)
         print(
             f"{COLOR['HEADER']}{COLOR['GREEN']}Generated {num_tokens} tokens from {MODEL_NAME} in {duration_s:.1f} seconds,"
