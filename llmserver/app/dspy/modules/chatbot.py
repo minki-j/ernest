@@ -11,13 +11,14 @@ class Chatbot(dspy.Module):
         initialize_DSPy(lm_name=lm_name)
 
         self.generate_chat_reply = dspy.Predict(GenerateChatReply, temperature=0.5, )
-        print("Class Initialized : Chatbot")
+        print("Class Initialized: Chatbot")
 
     def forward(self, user_info, previous_messages, message):
 
         pred = self.generate_chat_reply(
             user_info=user_info,
             previous_messages=previous_messages,
-            message=message,
+            message_from_user=message,
         )
-        return dspy.Prediction(reply=pred.reply)
+        
+        return dspy.Prediction(reply=pred.reply_from_bot)

@@ -18,12 +18,12 @@ class GenerateSearchQuery(dspy.Signature):
 
 
 class GenerateChatReply(dspy.Signature):
-    """Generate a reply to a chat message."""
+    """Generate a reply to a chat message based off the context and previous messages.DO NOT REPEAT THE CONTEXT."""
 
-    previous_messages = dspy.InputField(desc="previous chat messages")
     user_info = dspy.InputField(desc="user information")
-    message = dspy.InputField()
-    reply = dspy.OutputField()
+    previous_messages = dspy.InputField(desc="previous chat messages")
+    message_from_user = dspy.InputField(desc="the message from the user that you are going to reply to")
+    reply_from_bot = dspy.OutputField(desc="don't repeat the context, just the reply")
 
 
 class IntentClassifier(dspy.Signature):

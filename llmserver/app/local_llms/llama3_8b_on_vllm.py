@@ -7,7 +7,7 @@ from app.common import app
 VOL_DIR = "/my_vol"
 MODEL_DIR = "/model"
 MODEL_NAME = "meta-llama/Meta-Llama-3-8B-Instruct"
-GPU_CONFIG = modal.gpu.H100(count=1)
+GPU_CONFIG = modal.gpu.A10G()
 
 
 def download_model_to_image(model_dir, model_name):
@@ -36,6 +36,7 @@ image = (
         "ray==2.10.0",
         "huggingface_hub==0.19.4",
         "hf-transfer==0.1.4",
+        # "flash-attn==2.5.8",
     )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
     .run_function(
@@ -66,7 +67,7 @@ class Llama3_8B_on_VLLM:
 
     @modal.enter()
     def load(self):
-        self.template = "start_of_turn>user\n{user}<end_of_turn>\n<start_of_turn>model"
+        self.template = "<start_of_turn>user\n{user}<end_of_turn>\n<start_of_turn>model"
 
         # Load the model. Some models, like MPT, may require `trust_remote_code=true`.
         self.llm = vllm.LLM(
@@ -77,8 +78,11 @@ class Llama3_8B_on_VLLM:
         print("Model loaded: Llama3_8B_on_VLLM")
 
     @modal.method()
-    def generate(self, user_questions):
-        prompts = [self.template.format(user=q) for q in user_questions]
+    def generate(self, user_questions, use_template=False):
+        if use_template:
+            prompts = [self.template.format(user=q) for q in user_questions]
+        else:
+            prompts = user_questions
 
         sampling_params = vllm.SamplingParams(
             temperature=1,
@@ -87,6 +91,7 @@ class Llama3_8B_on_VLLM:
             presence_penalty=1.15,
         )
         start = time.monotonic_ns()
+        print("prompt:\n", prompts[0])
         result = self.llm.generate(prompts, sampling_params)
         duration_s = (time.monotonic_ns() - start) / 1e9
         num_tokens = 0
@@ -109,8 +114,7 @@ class Llama3_8B_on_VLLM:
             # )
             time.sleep(0.01)
         print(
-            f"{COLOR['HEADER']}{COLOR['GREEN']}Generated {num_tokens} tokens from {MODEL_NAME} in {duration_s:.1f} seconds,"
-            f" throughput = {num_tokens / duration_s:.0f} tokens/second on {GPU_CONFIG}.{COLOR['ENDC']}"
+            f"{COLOR['HEADER']}Generated {num_tokens} tokens from {MODEL_NAME} in {duration_s:.3f} seconds on {GPU_CONFIG}.{COLOR['ENDC']}"
         )
 
         return [output.outputs[0].text for output in result]
@@ -121,17 +125,3 @@ class Llama3_8B_on_VLLM:
             import ray
 
             ray.shutdown()
-
-
-# @app.local_entrypoint()
-# def main():
-#     questions = [
-#         "Implement a Python function to compute the Fibonacci numbers.",
-#         "What is the fable involving a fox and grapes?",
-#         "What were the major contributing factors to the fall of the Roman Empire?",
-#         "Describe the city of the future, considering advances in technology, environmental changes, and societal shifts.",
-#         "What is the product of 9 and 8?",
-#         "Who was Emperor Norton I, and what was his significance in San Francisco's history?",
-#     ]
-#     model = Model()
-#     model.generate.remote(questions)

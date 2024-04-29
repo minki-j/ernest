@@ -12,6 +12,7 @@ image = (
         "transformers",
         "huggingface_hub",
         "anthropic",
+        # "accelerate",
     )
     .run_commands("pip install --upgrade fastapi pydantic")
 )

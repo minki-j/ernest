@@ -8,8 +8,9 @@ def initialize_DSPy(lm_name="gpt-3.5-turbo", rm_name="colbert"):
         if lm_name == "gpt-3.5-turbo":
             lm = dspy.OpenAI(model="gpt-3.5-turbo")
         elif lm_name == "llama3_8b_on_vllm":
-            # TODO: Implement llama3_8b_on_vllm
-            lm = Llama3_8b_Modal_Client()
+            lm = Llama3_8b_Modal_Client(vllm=True)
+        elif lm_name == "llama3_8b":
+            lm = Llama3_8b_Modal_Client(vllm=False)
 
         if rm_name == "colbert":
             rm = dspy.ColBERTv2(url="http://20.102.90.50:2017/wiki17_abstracts")

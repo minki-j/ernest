@@ -11,7 +11,7 @@ class IntentClassifierModule(dspy.Module):
         load_compiled_module_if_exists(self, "intent_classifier")
 
         self.classify_intent = dspy.Predict(IntentClassifier)
-        print("Class Initialized : IntentClassifier")
+        print("Class Initialized: IntentClassifier")
 
     def forward(self, question, options="not provided", context="not provided"):
 
@@ -20,9 +20,5 @@ class IntentClassifierModule(dspy.Module):
             question=question,
             options=options,
         )
-
-        # print("---------lm.inspect_history-----------")
-        # print(dspy.settings.lm.inspect_history(n=1))
-        # print("---------lm.inspect_history-----------")
 
         return dspy.Prediction(intent=pred.intent)

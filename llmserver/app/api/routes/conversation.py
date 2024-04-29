@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form, Response
 from pydantic import BaseModel
 from datetime import datetime
 
-
+import dspy
 from app.dspy.modules.chatbot import Chatbot
 
 from app.utils.twilio import send_sms
@@ -23,17 +23,34 @@ def root():
 
 
 @router.post("/chat")
-def reply_to_message(From: str = Form(...), Body: str = Form(...)):
+def reply_to_message(
+    From: str = Form(...),
+    Body: str = Form(...),
+    model: str = "gpt-3.5-turbo",
+    vllm: bool = False,
+):
     received_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     user_message = Body
     user_phone_number = From
 
-    user_info, previous_messages = fetch_chat_history(phone_number=user_phone_number)
+    user_info, previous_messages = fetch_chat_history(
+        phone_number=user_phone_number,
+        n=4,
+    )
+    
+    print("model: ", model)
+    print("vllm: ", vllm)
+    if model == "llama3_8b":
+        if vllm:
+            chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
+        else:
+            chatbot = Chatbot(lm_name="llama3_8b")
+    else:
+        chatbot = Chatbot(lm_name="gpt-3.5-turbo")
 
-    chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
     pred = chatbot.forward(user_info, previous_messages, user_message)
 
-    send_sms(pred.reply, user_phone_number)
+    # send_sms(pred.reply, user_phone_number)
 
     replied_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -44,5 +61,10 @@ def reply_to_message(From: str = Form(...), Body: str = Form(...)):
         received_time=received_time,
         replied_time=replied_time,
     )
+
+    print("---------lm.inspect_history-----------")
+    print(dspy.settings.lm.inspect_history(n=1))
+    print("LLM: ", dspy.settings.lm)
+    print("---------lm.inspect_history-----------")
 
     return {"message": pred.reply}

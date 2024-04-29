@@ -7,8 +7,7 @@ from pymongo.server_api import ServerApi
 from bson.objectid import ObjectId
 
 
-def fetch_chat_history(phone_number: str) -> List[str]:
-    print("user_phone_number:", phone_number)
+def fetch_chat_history(phone_number: str, n: int) -> List[str]:
     uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
     client = MongoClient(uri, server_api=ServerApi('1'))
 
@@ -29,12 +28,19 @@ def fetch_chat_history(phone_number: str) -> List[str]:
         user_info += info
 
     previous_messages = ""
-    for msg in chat_history["messages"]:
-        try:
-            author_message_block = msg["author"] + ": " + msg["message"] + "\n"
-            previous_messages += author_message_block
-        except:
-            pass
+    if "messages" in chat_history:
+        count = 0
+        for msg in chat_history["messages"]:
+            try:
+                author_message_block = msg["author"] + ": " + msg["message"] + "\n"
+                previous_messages += author_message_block
+                count += 1
+                if count == n:
+                    break
+            except:
+                pass
+    else:
+        previous_messages = "No previous messages provided."
 
     return user_info, previous_messages
 
