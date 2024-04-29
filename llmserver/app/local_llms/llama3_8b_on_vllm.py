@@ -36,8 +36,8 @@ image = (
         "ray==2.10.0",
         "huggingface_hub==0.19.4",
         "hf-transfer==0.1.4",
-        # "flash-attn==2.5.8",
     )
+    # .pip_install("flash-attn==2.5.8") # getting an error
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
     .run_function(
         download_model_to_image,
@@ -93,6 +93,7 @@ class Llama3_8B_on_VLLM:
         start = time.monotonic_ns()
         print("prompt:\n", prompts[0])
         result = self.llm.generate(prompts, sampling_params)
+        print("result:\n", result[0].outputs[0].text)
         duration_s = (time.monotonic_ns() - start) / 1e9
         num_tokens = 0
 

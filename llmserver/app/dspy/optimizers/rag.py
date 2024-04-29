@@ -20,8 +20,8 @@ vol_path = "/my_vol/"
     image=image,
     volumes={vol_path: Volume.from_name("survey-buddy")},
     secrets=[
-        Secret.from_name("OPENAI_API_KEY"),
-        Secret.from_name("my-anthropic-secret"),
+        # Secret.from_name("OPENAI_API_KEY"),
+        # Secret.from_name("my-anthropic-secret"),
         Secret.from_name("Monogo DB connection password"),
     ],
 )

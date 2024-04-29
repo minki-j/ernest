@@ -12,7 +12,7 @@ class Llama3_8b_Modal_Client(LM):
         self.provider = "default"
         self.history = []
 
-        self.kwargs = {}
+        self.kwargs = {"temperature": 0.7}
         self.vllm = vllm
 
     def basic_request(self, prompt: str, **kwargs):
@@ -21,7 +21,6 @@ class Llama3_8b_Modal_Client(LM):
         base_url = (
             f"https://jung0072--survey-buddy-fastapi-asgi{"-dev" if running_on_ephemeral else ""}.modal.run/local_llm"
         )
-        print("base_url:", base_url)
         response = requests.post(
             base_url,
             headers=headers,

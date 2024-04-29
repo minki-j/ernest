@@ -2,6 +2,8 @@ import dspy
 
 from app.dspy.signatures.signatures import GenerateChatReply
 from app.dspy.utils.initialize_DSPy import initialize_DSPy
+from app.dspy.modules.intent_classifier import IntentClassifierModule
+
 
 class Chatbot(dspy.Module):
 
@@ -10,15 +12,37 @@ class Chatbot(dspy.Module):
 
         initialize_DSPy(lm_name=lm_name)
 
-        self.generate_chat_reply = dspy.Predict(GenerateChatReply, temperature=0.5, )
+        self.intent_classifier = IntentClassifierModule()
+        self.generate_chat_reply = dspy.Predict(GenerateChatReply)
         print("Class Initialized: Chatbot")
 
-    def forward(self, user_info, previous_messages, message):
+    def forward(self, context, conversation):
+
+        intent = self.check_intent(conversation[-1]["content"])
+
+        if intent == "web_search":
+            return dspy.Prediction(
+                reply="I am not able to search the web right now. Please ask me something else."
+            )
+
+        context_string = ""
+        for element in context:
+            for key, value in element.items():
+                context_string += str(key) + ": " + str(value) + "\n"
+
+        conversation_string = ""
+        for msg in conversation:
+            conversation_string += str(msg["role"]) + ": " + str(msg["content"]) + "\n"
 
         pred = self.generate_chat_reply(
-            user_info=user_info,
-            previous_messages=previous_messages,
-            message_from_user=message,
+            context=context_string,
+            conversation=conversation_string,
         )
-        
-        return dspy.Prediction(reply=pred.reply_from_bot)
+
+        return dspy.Prediction(reply=pred.bot)
+
+    def check_intent(self, message):
+        return self.intent_classifier.forward(
+            message,
+            options="web_search, chat, other",
+        ).intent

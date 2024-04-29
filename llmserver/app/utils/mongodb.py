@@ -21,28 +21,31 @@ def fetch_chat_history(phone_number: str, n: int) -> List[str]:
 
     if chat_history is None:
             return {"message": "No chat history found"}
+    context = []
 
     user_info = ""
     for key, value in chat_history["user_info"].items():
         info = str(key) + ": " + str(value) + "\n"
         user_info += info
+    context.append({"user_info": user_info})
 
-    previous_messages = ""
+    conversation = []
     if "messages" in chat_history:
         count = 0
         for msg in chat_history["messages"]:
             try:
-                author_message_block = msg["author"] + ": " + msg["message"] + "\n"
-                previous_messages += author_message_block
+                author_message_block = {
+                    "role": msg["author"], 
+                    "content": msg["message"]
+                }
+                conversation.append(author_message_block)
                 count += 1
                 if count == n:
                     break
             except:
                 pass
-    else:
-        previous_messages = "No previous messages provided."
 
-    return user_info, previous_messages
+    return context, conversation
 
 
 def update_chat_history(phone_number: str, user_message: str, reply: str, received_time: str, replied_time: str) -> bool:

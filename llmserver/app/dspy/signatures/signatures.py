@@ -18,12 +18,11 @@ class GenerateSearchQuery(dspy.Signature):
 
 
 class GenerateChatReply(dspy.Signature):
-    """Generate a reply to a chat message based off the context and previous messages.DO NOT REPEAT THE CONTEXT."""
+    """Generate a reply to a chat message"""
 
-    user_info = dspy.InputField(desc="user information")
-    previous_messages = dspy.InputField(desc="previous chat messages")
-    message_from_user = dspy.InputField(desc="the message from the user that you are going to reply to")
-    reply_from_bot = dspy.OutputField(desc="don't repeat the context, just the reply")
+    context = dspy.InputField(desc="context")
+    conversation = dspy.InputField(desc="converation")
+    bot = dspy.OutputField(desc="reply from the bot")
 
 
 class IntentClassifier(dspy.Signature):
@@ -34,6 +33,7 @@ class IntentClassifier(dspy.Signature):
     options = dspy.InputField(desc="may contain multiple choice options for possible intents")
     intent = dspy.OutputField(desc="the correct option of intent. must be the text not the index or option index.")
     print("Class Initialized: IntentClassifier")
+
 
 class AssessIntentClassification(dspy.Signature):
     """Assess the intent classification task. Answer succinctly whether the predicted intent is correct. Do not repeat the question."""

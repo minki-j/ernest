@@ -4,6 +4,8 @@ from datetime import datetime
 
 import dspy
 from app.dspy.modules.chatbot import Chatbot
+from app.dspy.modules.intent_classifier import IntentClassifierModule
+
 
 from app.utils.twilio import send_sms
 
@@ -27,19 +29,20 @@ def reply_to_message(
     From: str = Form(...),
     Body: str = Form(...),
     model: str = "gpt-3.5-turbo",
-    vllm: bool = False,
+    vllm: bool = True,
 ):
     received_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
     user_message = Body
     user_phone_number = From
 
-    user_info, previous_messages = fetch_chat_history(
+    context, conversation = fetch_chat_history(
         phone_number=user_phone_number,
         n=4,
     )
-    
-    print("model: ", model)
-    print("vllm: ", vllm)
+
+    conversation.append({"role": "user", "content": user_message})
+
     if model == "llama3_8b":
         if vllm:
             chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
@@ -48,9 +51,9 @@ def reply_to_message(
     else:
         chatbot = Chatbot(lm_name="gpt-3.5-turbo")
 
-    pred = chatbot.forward(user_info, previous_messages, user_message)
+    pred = chatbot.forward(context, conversation)
 
-    # send_sms(pred.reply, user_phone_number)
+    send_sms(pred.reply, user_phone_number)
 
     replied_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

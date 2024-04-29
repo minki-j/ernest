@@ -15,5 +15,7 @@ def compile(module_name: str):
         return CompileRag().compile.remote(module_name)
     elif module_name == "intent_classifier":
         return CompileIntentClassifier().compile.remote()
+    elif module_name == "intent_classifier_t5":
+        return CompileIntentClassifier().compile_t5.remote()
     else:
         return {"message": "Module name not found!"}
