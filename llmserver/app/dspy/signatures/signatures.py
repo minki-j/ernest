@@ -22,6 +22,7 @@ class GenerateChatReply(dspy.Signature):
 
     context = dspy.InputField(desc="context")
     conversation = dspy.InputField(desc="converation")
+    instruction= dspy.InputField(desc="may contain some instruction to reply in a specific way or about some content")
     bot = dspy.OutputField(desc="reply from the bot")
 
 
@@ -44,3 +45,29 @@ class AssessIntentClassification(dspy.Signature):
         desc='''return "true" if gold_intent and pred share the same meaning, "false" if they differ. do not repeat the question.'''
     )
     print("Class Initialized : AssessIntentClassification")
+
+
+class ChooseNextQuestion(dspy.Signature):
+    """Choose the next question to ask based on the last 3 messages in the conversation."""
+
+    last_3_messages = dspy.InputField(desc="last 3 messages in the conversation")
+    options = dspy.InputField(desc="may contain multiple choice options for possible next questions")
+    next_question = dspy.OutputField(desc="the next question to ask")
+    print("Class Initialized : ChooseNextQuestion")
+
+
+class AssessUsefulness(dspy.Signature):
+    """Assess the usefulness of the last 3 messages in a conversation."""
+
+    last_messages = dspy.InputField(desc="last 3 messages in the conversation")
+    usefulness_score = dspy.OutputField(desc="a score between 0 and 1")
+    extraction = dspy.OutputField(desc="a string extracted from the messages")
+    print("Class Initialized : AssessUsefulness")
+
+class CheckEnoughAnswerForQuestion(dspy.Signature):
+    """Check if the answer is enough for the question."""
+
+    question = dspy.InputField(desc="question")
+    answer = dspy.InputField(desc="answer")
+    enoughness_score = dspy.OutputField(desc="a score between 0 and 1")
+    print("Class Initialized : CheckEnoughAnswerForQuestion")

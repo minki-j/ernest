@@ -15,7 +15,7 @@ web_app.include_router(api_router)
     image=image,
     gpu=False,
     secrets=[
-        # Secret.from_name("OPENAI_API_KEY"),
+        Secret.from_name("OPENAI_API_KEY"),
         Secret.from_name("Monogo DB connection password"),
         Secret.from_name("my-twilio-secret"),
     ],

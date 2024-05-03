@@ -22,8 +22,8 @@ VOL_DIR = "/my_vol"
     image=image,
     volumes={VOL_DIR: Volume.from_name("survey-buddy")},
     secrets=[
-        # Secret.from_name("OPENAI_API_KEY"),
-        # Secret.from_name("my-anthropic-secret"),
+        Secret.from_name("OPENAI_API_KEY"),
+        Secret.from_name("my-anthropic-secret"),
         Secret.from_name("Monogo DB connection password"),
     ],
 )
@@ -64,7 +64,7 @@ class CompileIntentClassifier:
 
     @method()
     def compile_t5(self):
-        config = dict(target='t5-large', epochs=1, bf16=True, bsize=6, accumsteps=2, lr=5e-5)
+        config = dict(target='t5-base', epochs=1, bf16=True, bsize=6, accumsteps=2, lr=5e-5)
 
         llama_intent_classifier = IntentClassifierModule(lm_name="llama3_8b_on_vllm")
 
