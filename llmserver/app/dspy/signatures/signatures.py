@@ -1,5 +1,10 @@
 import dspy
 
+class PurePrompt(dspy.Signature):
+    prompt = dspy.InputField()
+    output = dspy.OutputField()
+    print("Class Initialized: PurePrompt")
+
 class GenerateAnswer(dspy.Signature):
     """Answer questions with short factoid answers."""
 

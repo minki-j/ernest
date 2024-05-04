@@ -10140,3 +10140,82 @@ RuntimeError: cannot schedule new futures after shutdown
 3 changes detected
 1 change detected
 4 changes detected
+1 change detected
+1 change detected
+1 change detected
+2 changes detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+unhandled exception during asyncio.run() shutdown
+task: <Task finished name='Task-3' coro=<on_shutdown.<locals>.wrapper() done, defined at /Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/_utils/async_utils.py:305> exception=RuntimeError('cannot schedule new futures after shutdown')>
+Traceback (most recent call last):
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/_utils/async_utils.py", line 307, in wrapper
+    await asyncio.sleep(1e10)  # never awake except for exceptions
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/asyncio/tasks.py", line 665, in sleep
+    return await future
+           ^^^^^^^^^^^^
+asyncio.exceptions.CancelledError
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/_utils/async_utils.py", line 309, in wrapper
+    await coro
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/client.py", line 124, in _close
+    await self._pre_stop()  # type: ignore
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/runner.py", line 171, in _disconnect
+    await retry_transient_errors(client.stub.AppClientDisconnect, req_disconnect)
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/_utils/grpc_utils.py", line 249, in retry_transient_errors
+    return await fn(*args, metadata=metadata, timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/grpclib/client.py", line 903, in __call__
+    await stream.send_message(message, end=True)
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/grpclib/client.py", line 241, in send_message
+    await self.send_request()
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/grpclib/client.py", line 173, in send_request
+    protocol = await self._channel.__connect__()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/modal/_utils/grpc_utils.py", line 114, in __connect__
+    protocol = await self._create_connection()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/site-packages/grpclib/client.py", line 725, in _create_connection
+    _, protocol = await self._loop.create_connection(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/asyncio/base_events.py", line 1078, in create_connection
+    infos = await self._ensure_resolved(
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/asyncio/base_events.py", line 1454, in _ensure_resolved
+    return await loop.getaddrinfo(host, port, family=family, type=type,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/asyncio/base_events.py", line 899, in getaddrinfo
+    return await self.run_in_executor(
+                 ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/asyncio/base_events.py", line 861, in run_in_executor
+    executor.submit(func, *args), loop=self)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/minkijung/anaconda3/envs/survey_buddy/lib/python3.12/concurrent/futures/thread.py", line 170, in submit
+    raise RuntimeError('cannot schedule new futures after shutdown')
+RuntimeError: cannot schedule new futures after shutdown
+1 change detected
+1 change detected
+2 changes detected
+2 changes detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+2 changes detected
+3 changes detected
+1 change detected
+1 change detected

@@ -6,6 +6,7 @@ import dspy
 from app.dspy.modules.chatbot import Chatbot
 from app.dspy.modules.intent_classifier import IntentClassifierModule
 
+from pprint import pprint
 
 from app.utils.twilio import send_sms
 
@@ -35,17 +36,28 @@ def reply_to_message(
     model: str = "gpt-3.5-turbo",
     vllm: bool = True,
 ):
-    received_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
     user_message = Body
     user_phone_number = From
+    enoughness_threshold = 0.9
 
-    context, conversation = fetch_chat_history(
-        phone_number=user_phone_number,
-        n=4,
-    )
-
-    conversation.append({"role": "user", "content": user_message})
+    # update the answer based on the user's last message
+    result= update_question_answer(
+            user_phone_number=user_phone_number,
+            user_message=user_message,
+            n=4,
+            enoughness_threshold=enoughness_threshold,
+        )
+    print("result: ", result)
+    # !! TODO: relevant question can be more than one. Need a better way to detect and handle it. In the meantime, I'll just assume that the user replied to the lastest question.
+    chat_data = {
+        "relevant_question": result["relevant_question"],
+        "updated_answer": result["updated_answer"],
+        "ref_message_ids": result["ref_message_ids"],
+        "unasked_questions": result["unasked_questions"],
+        "messages": result["document"]["messages"],
+        "context": result["document"]["user_info"],
+        "enoughness_threshold": enoughness_threshold,
+    }
 
     if model == "llama3_8b":
         if vllm:
@@ -55,7 +67,8 @@ def reply_to_message(
     else:
         chatbot = Chatbot(lm_name="gpt-3.5-turbo")
 
-    pred = chatbot.forward(user_phone_number, context, conversation)
+    pred = chatbot.forward(user_phone_number, chat_data=chat_data)
+    print(f"==>> pred: {pred}")
 
     # send_sms(pred.reply, user_phone_number)
 
@@ -71,18 +84,9 @@ def reply_to_message(
     #     replied_time=replied_time,
     # )
 
-    update_question_answer(
-        user_phone_number,
-        ref_message_ids=[
-            pred.user_message_id,
-        ],
-        answer=pred.updated_answer,
-        enoughness_score=pred.enoughness_score,
-    )
+    # print("---------lm.inspect_history-----------")
+    # print(dspy.settings.lm.inspect_history(n=1))
+    # print("LLM: ", dspy.settings.lm)
+    # print("---------lm.inspect_history-----------")
 
-    print("---------lm.inspect_history-----------")
-    print(dspy.settings.lm.inspect_history(n=1))
-    print("LLM: ", dspy.settings.lm)
-    print("---------lm.inspect_history-----------")
-
-    return {"message": pred.reply}
+    return {"message": pred.reply if pred else "ERROR: pred is None"}

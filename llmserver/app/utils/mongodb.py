@@ -1,10 +1,15 @@
 import os 
+from datetime import datetime
 from typing import List
 
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
 from bson.objectid import ObjectId
+
+import dspy
+from app.dspy.signatures.signatures import PurePrompt
+from app.dspy.utils.initialize_DSPy import initialize_DSPy
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
@@ -163,22 +168,91 @@ def get_relevant_question_from_message(phone_number: str,message: str) -> str:
     return relevant_question["questions"][0] if relevant_question else None
 
 
-def update_question_answer(phone_number: str, ref_message_ids: List[ObjectId], answer: str, enoughness_score: int) -> bool:
+def update_question_answer(user_phone_number: str, user_message: str, n: int, enoughness_threshold: float) -> bool:
+    '''Based on the user's new message, update the answer of the relevant question. And return the whole context and conversation along with the updated question object.'''
     client = MongoClient(uri, server_api=ServerApi('1'))
-
     try:
         db = client.get_database('chat_history')
         history_collection= db.get_collection('history')
-        history_collection.update_one(
-            {"phone_number": phone_number},
+        # first find the relevant question by looking up the latest bot's message
+        document = history_collection.find_one(
             {
-                "$push": {"reference_message_ids": ref_message_ids},
-                "$set": {"answer": answer},
-                "$set": {"enoughness_score": enoughness_score}
+                "phone_number": user_phone_number,
+            },
+            {
+                '_id': 0
             }
         )
     except Exception as e:
         print(e)
         return False
 
-    return True
+    document["messages"].reverse()
+    for msg in document["messages"]:
+        if msg["role"] == "bot":
+            id_of_last_bot_message = msg["id"]
+            break
+    
+    message_id = ObjectId()
+    document["messages"].insert(0,{"id": message_id, "role": "user", "message": user_message, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+
+    relevant_question = None
+    for question in document["questions"]:
+        if id_of_last_bot_message in question["reference_message_ids"]:
+            relevant_question = question
+            ref_message_ids = question["reference_message_ids"]
+            question["reference_message_ids"].append(message_id)
+            break
+
+
+    unasked_questions = [question for question in document["questions"] if question["enough"] < enoughness_threshold]
+
+    if not relevant_question:
+        print("No relevant question found")
+        updated_answer = None
+    else:
+        updated_answer = update_answer(relevant_question, user_message)
+
+    for question in document["questions"]:
+        if question["question"] == relevant_question["question"]:
+            question["answer"] = updated_answer
+            break
+
+    return {
+        "relevant_question": relevant_question,
+        "updated_answer": updated_answer,
+        "ref_message_ids": ref_message_ids,
+        "unasked_questions": unasked_questions,
+        "document": document,
+    }
+
+def update_answer(relevant_question, user_message):
+    question_content = relevant_question["question"]
+    original_answer = relevant_question.get("answer", "")
+
+    prompt = f'''
+Update the answer of the following question based on the user's last message:\n
+---\n
+Example\n
+\n
+Question: how was the assignments of the course?\n
+Previous Answer: It was too much for me. 
+User's Last Message: I mean, there were 3 assignment in total every week and it took 3 hours to complete. I think it was too much for me. Also, the deadline was too short. And some of the assignments were too messy and not clearly explained.\n
+Output: The workload was overwhelming with three assignments each week, each requiring three hours to complete and with tight deadlines. Moreover, some of the assignments were disorganized and lacked clear instructions.\n
+---\n
+Question: {question_content}\n
+Previous Answer: {original_answer or "not answered yet"}\n
+User's Last Message: {user_message}\n
+'''
+
+    initialize_DSPy(lm_name="gpt-3.5-turbo")
+    pure_prompt = dspy.Predict(PurePrompt)
+    updated_answer = pure_prompt(prompt=prompt).output
+    print("updated_answer: ", updated_answer)
+
+    print("---------lm.inspect_history-----------")
+    print(dspy.settings.lm.inspect_history(n=1))
+    print("LLM: ", dspy.settings.lm)
+    print("---------lm.inspect_history-----------")
+
+    return updated_answer
