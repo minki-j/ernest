@@ -65,7 +65,7 @@ class Chatbot(dspy.Module):
                     answer=relevant_question["answer"],
                 ).enoughness_score
             )
-            print_dspy_history(1)
+            # print_dspy_history(1)
 
             if enoughness_score < enoughness_threshold:
                 # ask more questions about the current topic
@@ -80,7 +80,7 @@ class Chatbot(dspy.Module):
                     instruction="The current answer is not enough. Please ask more questions about the current topic.",
                 )
                 return dspy.Prediction(
-                    reply=pred.bot, enoughness_score=enoughness_score
+                    reply=pred.bot, enoughness_score=enoughness_score, next_question=None
                 )
 
         # choose other question if there is no relevant question or the answer is enough
@@ -89,14 +89,15 @@ class Chatbot(dspy.Module):
             options=" / ".join([question["question"] for question in unasked_questions]),
         ).next_question
 
-        print_dspy_history(1)
+
+        # print_dspy_history(1)
 
         pred = self.generate_chat_reply(
             context=context_string,
             conversation=conversation_string,
             instruction="first response to the user's last message and ask a question about the following: " + next_question,
         )
-        print_dspy_history(1)
+        # print_dspy_history(1)
 
         return dspy.Prediction(
             reply=pred.bot,

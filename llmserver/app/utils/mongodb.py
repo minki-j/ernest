@@ -59,7 +59,8 @@ def update_chat_history(phone_number: str, chat_data: dict, reply: str, next_que
     client = MongoClient(uri, server_api=ServerApi('1'))
 
     user_message = chat_data["messages"][-1]
-    bot_message = {"id": ObjectId(), "role": "bot", "content": reply, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    bot_message_id = ObjectId()
+    bot_message = {"id": bot_message_id, "role": "bot", "content": reply, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     new_messages = [user_message, bot_message]
 
     relevant_question = chat_data.get("relevant_question", None)
@@ -70,15 +71,35 @@ def update_chat_history(phone_number: str, chat_data: dict, reply: str, next_que
         {"phone_number": phone_number}, 
         {'$push': {'messages': {'$each': new_messages}}}
     )
-    if relevant_question or next_question:
-        print("append ref message ids: ", chat_data["ref_message_ids"])
+    if relevant_question:
         history_collection.update_one(
             {"phone_number": phone_number,
                 "questions.question": relevant_question["question"]},
-            {"$set": {"questions.$.answer": chat_data["updated_answer"], "questions.$.enough": 1.0},
-                "$push": {"questions.$.reference_message_ids": chat_data["ref_message_ids"]}}
+            {"$set": {"questions.$.answer": chat_data["updated_answer"]},
+             "$set": {"questions.$.enough": chat_data["enoughness_score"]},
+            "$push": {"questions.$.reference_message_ids": chat_data["ref_message_ids"]}}
         )
-
+    if next_question:
+        if relevant_question:
+            print("-----")
+            print("-----")
+            print("-----")
+            print("-----")
+            print("-----")
+            print("-----")
+            print("-----relevant_question: ", relevant_question)
+            history_collection.update_one(
+                {"phone_number": phone_number,
+                    "questions.question": relevant_question["question"]},
+                {"$set": {"questions.$.answer": chat_data["updated_answer"]},
+                "$set": {"questions.$.enough": chat_data["enoughness_score"]},
+                "$push": {"questions.$.reference_message_ids": chat_data["ref_message_ids"]}}
+            )
+        history_collection.update_one(
+            {"phone_number": phone_number,
+                "questions.question": next_question},
+            {"$push": {"questions.$.reference_message_ids": bot_message_id}}
+        )
 
     return True
 
