@@ -38,7 +38,7 @@ def reply_to_message(
 ):
     user_message = Body
     user_phone_number = From
-    enoughness_threshold = 0.9
+    enoughness_threshold = 0.5
 
     # update the answer based on the user's last message
     result= update_question_answer(
@@ -47,7 +47,8 @@ def reply_to_message(
             n=4,
             enoughness_threshold=enoughness_threshold,
         )
-    print("result: ", result)
+    print("updated answer: ", result["updated_answer"])
+
     # !! TODO: relevant question can be more than one. Need a better way to detect and handle it. In the meantime, I'll just assume that the user replied to the lastest question.
     chat_data = {
         "relevant_question": result["relevant_question"],
@@ -64,29 +65,24 @@ def reply_to_message(
             chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
         else:
             chatbot = Chatbot(lm_name="llama3_8b")
+    elif model == "claude-3-haiku-20240307":
+        chatbot = Chatbot(lm_name="claude-3-haiku-20240307")
     else:
         chatbot = Chatbot(lm_name="gpt-3.5-turbo")
 
-    pred = chatbot.forward(user_phone_number, chat_data=chat_data)
-    print(f"==>> pred: {pred}")
+    pred = chatbot.forward(chat_data)
 
     # send_sms(pred.reply, user_phone_number)
 
-    replied_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    was_successful = update_chat_history(
+        user_phone_number,
+        chat_data=chat_data,
+        reply=pred.reply,
+        next_question=pred.next_question,
+    )
 
-    # update_chat_history(
-    #     user_phone_number,
-    #     user_message=user_message,
-    #     user_message_id=pred.user_message_id,
-    #     reply=pred.reply,
-    #     reply_id=pred.reply_id,
-    #     received_time=received_time,
-    #     replied_time=replied_time,
-    # )
-
-    # print("---------lm.inspect_history-----------")
-    # print(dspy.settings.lm.inspect_history(n=1))
-    # print("LLM: ", dspy.settings.lm)
-    # print("---------lm.inspect_history-----------")
+    if not was_successful:
+        # TODO: delete updated answer from the database
+        return {"message": "ERROR: Could not update chat history."}
 
     return {"message": pred.reply if pred else "ERROR: pred is None"}

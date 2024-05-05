@@ -54,31 +54,31 @@ def fetch_chat_history(phone_number: str, n: int) -> List[str]:
     return context, conversation
 
 
-def update_chat_history(phone_number: str, user_message: str, user_message_id: ObjectId, reply: str, reply_id: ObjectId, received_time: str, replied_time: str) -> bool:
+def update_chat_history(phone_number: str, chat_data: dict, reply: str, next_question: str) -> bool:
+    print("chat_data: ", chat_data)
     client = MongoClient(uri, server_api=ServerApi('1'))
 
-    new_messages = [
-        {
-            "id": user_message_id,
-            "author": "user",
-            "message": user_message,
-            "created_at": received_time,
-        },
-        {
-            "id": reply_id,
-            "author": "bot",
-            "message": reply,
-            "created_at": replied_time,
-        },
-    ]
+    user_message = chat_data["messages"][-1]
+    bot_message = {"id": ObjectId(), "role": "bot", "content": reply, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+    new_messages = [user_message, bot_message]
 
-    try:
-        db = client.get_database('chat_history')
-        history_collection= db.get_collection('history')
-        history_collection.update_one({"phone_number": phone_number}, {'$push': {'messages': {'$each': new_messages}}})
-    except Exception as e:
-        print(e)
-        return False
+    relevant_question = chat_data.get("relevant_question", None)
+
+    db = client.get_database('chat_history')
+    history_collection= db.get_collection('history')
+    history_collection.update_one(
+        {"phone_number": phone_number}, 
+        {'$push': {'messages': {'$each': new_messages}}}
+    )
+    if relevant_question or next_question:
+        print("append ref message ids: ", chat_data["ref_message_ids"])
+        history_collection.update_one(
+            {"phone_number": phone_number,
+                "questions.question": relevant_question["question"]},
+            {"$set": {"questions.$.answer": chat_data["updated_answer"], "questions.$.enough": 1.0},
+                "$push": {"questions.$.reference_message_ids": chat_data["ref_message_ids"]}}
+        )
+
 
     return True
 
@@ -101,8 +101,7 @@ def fetch_unasked_questions(phone_number: str) -> List[str]:
                 "_id": 0
             },
         )
-        print(f"==>> unasked_questions type: {type(unasked_questions)}")
-        print(f"==>> unasked_questions: {unasked_questions}")
+
     except Exception as e:
         print(e)
         return []
@@ -186,17 +185,20 @@ def update_question_answer(user_phone_number: str, user_message: str, n: int, en
     except Exception as e:
         print(e)
         return False
-
-    document["messages"].reverse()
-    for msg in document["messages"]:
-        if msg["role"] == "bot":
-            id_of_last_bot_message = msg["id"]
-            break
+    
+    id_of_last_bot_message = None
+    revered_messages = document["messages"].reverse()
+    if revered_messages:
+        for msg in revered_messages:
+            if msg["role"] == "bot":
+                id_of_last_bot_message = msg["id"]
+                break
     
     message_id = ObjectId()
-    document["messages"].insert(0,{"id": message_id, "role": "user", "message": user_message, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
+    document["messages"].append({"id": message_id, "role": "user", "content": user_message, "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
 
     relevant_question = None
+    ref_message_ids = None
     for question in document["questions"]:
         if id_of_last_bot_message in question["reference_message_ids"]:
             relevant_question = question
@@ -212,11 +214,10 @@ def update_question_answer(user_phone_number: str, user_message: str, n: int, en
         updated_answer = None
     else:
         updated_answer = update_answer(relevant_question, user_message)
-
-    for question in document["questions"]:
-        if question["question"] == relevant_question["question"]:
-            question["answer"] = updated_answer
-            break
+        for question in document["questions"]:
+            if question["question"] == relevant_question["question"]:
+                question["answer"] = updated_answer
+                break
 
     return {
         "relevant_question": relevant_question,

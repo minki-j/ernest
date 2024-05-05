@@ -53,9 +53,9 @@ class AssessIntentClassification(dspy.Signature):
 
 
 class ChooseNextQuestion(dspy.Signature):
-    """Choose the next question to ask based on the last 3 messages in the conversation."""
+    """Choose the next question to ask. It's better to ask something relevant to the current conversation flow."""
 
-    last_3_messages = dspy.InputField(desc="last 3 messages in the conversation")
+    recent_messages = dspy.InputField(desc="recent messages in the conversation")
     options = dspy.InputField(desc="may contain multiple choice options for possible next questions")
     next_question = dspy.OutputField(desc="the next question to ask")
     print("Class Initialized : ChooseNextQuestion")

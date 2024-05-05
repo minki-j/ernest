@@ -8,6 +8,7 @@ from app.dspy.signatures.signatures import (
 )
 from app.dspy.utils.initialize_DSPy import initialize_DSPy
 from app.dspy.modules.intent_classifier import IntentClassifierModule
+from app.dspy.utils.print_history import print_dspy_history
 
 from app.utils.mongodb import (
     fetch_unasked_questions,
@@ -24,7 +25,7 @@ class Chatbot(dspy.Module):
 
         self.enoughness_score_threshold = enoughness_score_threshold
 
-        self.intent_classifier = IntentClassifierModule()
+        # self.intent_classifier = IntentClassifierModule()
         self.generate_chat_reply = dspy.Predict(GenerateChatReply)
         self.check_usefulness = dspy.Predict(AssessUsefulness)
         self.check_enough_answer_for_question = dspy.Predict(
@@ -34,8 +35,7 @@ class Chatbot(dspy.Module):
 
         print("Class Initialized: Chatbot")
 
-    def forward(self, user_phone_number, chat_data):
-        print("chat_data: ", chat_data)
+    def forward(self, chat_data):
 
         relevant_question = chat_data["relevant_question"]
         updated_answer = chat_data["updated_answer"]
@@ -45,77 +45,64 @@ class Chatbot(dspy.Module):
         context = chat_data["context"]
         enoughness_threshold = chat_data["enoughness_threshold"]
 
-        # check enoughness
-        enoughness_score = self.check_enough_answer_for_question(
-            question=relevant_question["question"], answer=relevant_question["answer"]
-        ).enoughness_score
+        conversation_string = ""
+        for idx, msg in enumerate(messages):
+            conversation_string += str(msg["role"]) + ": " + str(msg["content"]) + "\n"
+            idx += 1
+            if idx == 4:
+                break
 
-        # print("enoughness_score: ", enoughness_score)
-        # print("---------lm.inspect_history-----------")
-        # print(dspy.settings.lm.inspect_history(n=1))
-        # print("LLM: ", dspy.settings.lm)
-        # print("---------lm.inspect_history-----------")
+        context_string = ""
+        for key, value in context.items():
+            context_string += str(key) + ": " + str(value) + "\n"
 
-        if enoughness_score < self.enoughness_score_threshold:
-            # ask more questions about the current topic
-            print("ask more questions about the current topic")
-
-            pred = self.generate_chat_reply(
-                context=context,
-                conversation=messages,
-                instruction="your reply should be a question about " + relevant_question["question"],
+        enoughness_score = None
+        if relevant_question:
+            # check enoughness
+            enoughness_score = float(
+                self.check_enough_answer_for_question(
+                    question=relevant_question["question"],
+                    answer=relevant_question["answer"],
+                ).enoughness_score
             )
+            print_dspy_history(1)
 
-    # context_string = ""
-    # for element in context:
-    #     for key, value in element.items():
-    #         context_string += str(key) + ": " + str(value) + "\n"
+            if enoughness_score < enoughness_threshold:
+                # ask more questions about the current topic
+                print("ask more questions about the current topic")
 
-    # conversation_string = ""
-    # for msg in conversation:
-    #     conversation_string += str(msg["role"]) + ": " + str(msg["content"]) + "\n"
+                context_string += "current topic: " + relevant_question["question"]
+                context_string += "current answer: " + updated_answer
 
-    # # check if the relevant question to the user's last answer
-    # last_user_message = conversation[-1]["content"]
-    # last_bot_message = conversation[-2]["content"]
+                pred = self.generate_chat_reply(
+                    context=context_string,
+                    conversation=conversation_string,
+                    instruction="The current answer is not enough. Please ask more questions about the current topic.",
+                )
+                return dspy.Prediction(
+                    reply=pred.bot, enoughness_score=enoughness_score
+                )
 
-    # relevant_question = get_relevant_question_from_message(
-    #     user_phone_number, last_bot_message
-    # )
+        # choose other question if there is no relevant question or the answer is enough
+        next_question = self.choose_next_question(
+            recent_messages=conversation_string,
+            options=" / ".join([question["question"] for question in unasked_questions]),
+        ).next_question
 
-    # enoughness_score = self.check_enough_answer_for_question(
-    #     question=relevant_question["question"], answer=relevant_question["answer"]
-    # ).enoughness_score
-    # print("enoughness_score: ", enoughness_score)
+        print_dspy_history(1)
 
-    # # if no relevant question found, ask more
-    # # if threhold is not met, ask more
-    # # if both are not met, choose other question
-    # if relevant_question and relevant_question["enough_score"] < self.enoughness_score_threshold:
-    #     # ask more questions about the current topic
-    #     print("ask more questions about the current topic")
+        pred = self.generate_chat_reply(
+            context=context_string,
+            conversation=conversation_string,
+            instruction="first response to the user's last message and ask a question about the following: " + next_question,
+        )
+        print_dspy_history(1)
 
-    #     pred = self.generate_chat_reply(
-    #         context=context_string,
-    #         conversation=conversation_string,
-    #         instruction="your reply should be a question about " + next_question,
-    #     )
-
-    # else:
-    #     # choose other question
-    #     options = fetch_unasked_questions(user_phone_number)
-    #     next_question = self.choose_next_question(
-    #         last_messages=[message["content"] for message in conversation],
-    #         options=options,
-    #     ).next_question
-
-    #     pred = self.generate_chat_reply(
-    #         context=context_string,
-    #         conversation=conversation_string,
-    #         instruction="your reply should be a question about "+ next_question,
-    #     )
-
-    # return dspy.Prediction(reply=pred.bot, user_message_id=user_message_id, reply_id=reply_id, updated_answer=updated_answer, enoughness_score=enoughness_score)
+        return dspy.Prediction(
+            reply=pred.bot,
+            enoughness_score=enoughness_score,
+            next_question=next_question,
+        )
 
     def check_intent(self, message):
         return self.intent_classifier.forward(
