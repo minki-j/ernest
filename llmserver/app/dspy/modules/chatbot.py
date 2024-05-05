@@ -1,29 +1,37 @@
 import dspy
 
+import json
+from datetime import datetime
+from bson.objectid import ObjectId
+
 from app.dspy.signatures.signatures import (
     GenerateChatReply,
     ChooseNextQuestion,
     AssessUsefulness,
     CheckEnoughAnswerForQuestion,
+    PurePrompt
 )
 from app.dspy.utils.initialize_DSPy import initialize_DSPy
 from app.dspy.modules.intent_classifier import IntentClassifierModule
 from app.dspy.utils.print_history import print_dspy_history
 
-from app.utils.mongodb import (
-    fetch_unasked_questions,
-    get_relevant_question_from_message,
-)
+
+class JSONEncoder(json.JSONEncoder):
+    def default(self, o):
+        # don't include ObjectId and created_at in the json
+        if isinstance(o, ObjectId) or o == "created_at":
+            return
+        return json.JSONEncoder.default(self, o)
 
 
 class Chatbot(dspy.Module):
 
-    def __init__(self, lm_name="gpt-3.5-turbo", enoughness_score_threshold=0.5):
+    def __init__(self, lm_name="gpt-3.5-turbo", enoughness_threshold=0.9):
         super().__init__()
 
         initialize_DSPy(lm_name=lm_name)
 
-        self.enoughness_score_threshold = enoughness_score_threshold
+        self.enoughness_score_threshold = enoughness_threshold
 
         # self.intent_classifier = IntentClassifierModule()
         self.generate_chat_reply = dspy.Predict(GenerateChatReply)
@@ -35,74 +43,107 @@ class Chatbot(dspy.Module):
 
         print("Class Initialized: Chatbot")
 
-    def forward(self, chat_data):
+    def forward(self, document):
 
-        relevant_question = chat_data["relevant_question"]
-        updated_answer = chat_data["updated_answer"]
-        ref_message_ids = chat_data["ref_message_ids"]
-        unasked_questions = chat_data["unasked_questions"]
-        messages = chat_data["messages"]
-        context = chat_data["context"]
-        enoughness_threshold = chat_data["enoughness_threshold"]
+        # cases
+        # 1. there is no previous conversation: no relevant question. nedd to pick a question from the list
+        # 2. relevant question exists
+        # 2.2 update the answer with user's last message
+        # 2.3 check if the answer is enough
+        # 2.3.1 if not enough, ask more questions about the current topic
+        # 2.3.2 if enough, choose the next question
 
-        conversation_string = ""
-        for idx, msg in enumerate(messages):
-            conversation_string += str(msg["role"]) + ": " + str(msg["content"]) + "\n"
-            idx += 1
-            if idx == 4:
+        # find the latest bot message and get its id
+        # then find the relevant question that has the same id in its reference_message_ids
+
+        id_of_last_bot_message = None
+        for msg in reversed(document["messages"]):
+            if msg["role"] == "bot":
+                id_of_last_bot_message = msg["id"]
                 break
 
-        context_string = ""
-        for key, value in context.items():
-            context_string += str(key) + ": " + str(value) + "\n"
+        relevant_question = None
+        relevant_question_idx = None
+        if id_of_last_bot_message:
+            for idx, question in enumerate(document["questions"]):
+                if id_of_last_bot_message in question["reference_message_ids"]:
+                    relevant_question = question
+                    relevant_question_idx = idx
+                    break
 
-        enoughness_score = None
+        ask_other_question = True
         if relevant_question:
+            # update the answer with the user's last message
+            updated_answer = self.update_answer(relevant_question, document["messages"][-1]["content"])
+            for question in document["questions"]:
+                if question["content"] == relevant_question["content"]:
+                    relevant_question_idx = idx
+                    break
+
             # check enoughness
             enoughness_score = float(
                 self.check_enough_answer_for_question(
-                    question=relevant_question["question"],
-                    answer=relevant_question["answer"],
+                    question=relevant_question["content"],
+                    answer=updated_answer,
                 ).enoughness_score
             )
-            # print_dspy_history(1)
+            print("enoughness_score: ", enoughness_score)
 
-            if enoughness_score < enoughness_threshold:
-                # ask more questions about the current topic
-                print("ask more questions about the current topic")
+            # update document
+            document["questions"][relevant_question_idx]["answer"] = updated_answer
+            document["questions"][relevant_question_idx]["enough"] = enoughness_score
 
-                context_string += "current topic: " + relevant_question["question"]
-                context_string += "current answer: " + updated_answer
+            if enoughness_score < self.enoughness_score_threshold:
+                ask_other_question = False
 
-                pred = self.generate_chat_reply(
-                    context=context_string,
-                    conversation=conversation_string,
-                    instruction="The current answer is not enough. Please ask more questions about the current topic.",
-                )
-                return dspy.Prediction(
-                    reply=pred.bot, enoughness_score=enoughness_score, next_question=None
-                )
+        json_encoder = JSONEncoder()
+        next_question = None
+        if ask_other_question:
+            unasked_questions = []
+            for question in document["questions"]:
+                if question["enough"] < self.enoughness_score_threshold:
+                    unasked_questions.append(question["content"])
+            next_question = self.choose_next_question(
+                recent_messages=json_encoder.encode(document["messages"][-4:]),
+                options=" / ".join(unasked_questions),
+            ).next_question
 
-        # choose other question if there is no relevant question or the answer is enough
-        next_question = self.choose_next_question(
-            recent_messages=conversation_string,
-            options=" / ".join([question["question"] for question in unasked_questions]),
-        ).next_question
+            pred = self.generate_chat_reply(
+                context=json_encoder.encode(document["user_info"]),
+                conversation=json_encoder.encode(document["messages"][-4:]),
+                instruction="first response to the user's last message and ask a question about the following: " + next_question,
+            )
+        else:
+            pred = self.generate_chat_reply(
+                context=json_encoder.encode(document["user_info"]),
+                conversation=json_encoder.encode(document["messages"][-4:]),
+                instruction="The current answer is not enough. Please ask more questions about the current topic.",
+            )
 
-
-        # print_dspy_history(1)
-
-        pred = self.generate_chat_reply(
-            context=context_string,
-            conversation=conversation_string,
-            instruction="first response to the user's last message and ask a question about the following: " + next_question,
+        # update document / add bot's reply
+        bot_reply_id = ObjectId()
+        document["messages"].append(
+            {
+                "id": bot_reply_id,
+                "role": "bot",
+                "content": pred.bot,
+                "created_at": datetime.now().isoformat(),
+            }
         )
-        # print_dspy_history(1)
+
+        # if the bot is asking a next question, change the relevant question id
+        if next_question:
+            for idx, question in enumerate(document["questions"]):
+                if question["content"].strip() == next_question.strip():
+                    relevant_question_idx = idx
+                    break
+
+        # update document / add reference_message_ids
+        document["questions"][relevant_question_idx]["reference_message_ids"].append(bot_reply_id)
 
         return dspy.Prediction(
             reply=pred.bot,
-            enoughness_score=enoughness_score,
-            next_question=next_question,
+            new_document=document,
         )
 
     def check_intent(self, message):
@@ -110,3 +151,28 @@ class Chatbot(dspy.Module):
             message,
             options="web_search, chat, other",
         ).intent
+
+    def update_answer(self, relevant_question, user_message):
+        question_content = relevant_question["content"]
+        original_answer = relevant_question.get("answer", "")
+
+        prompt = f"""
+    Update the answer of the following question based on the user's last message:\n
+    ---\n
+    Example\n
+    \n
+    Question: how was the assignments of the course?\n
+    Previous Answer: It was too much for me.\n
+    User's Last Message: I mean, there were 3 assignment in total every week and it took 3 hours to complete. I think it was too much for me. Also, the deadline was too short. And some of the assignments were too messy and not clearly explained.\n
+    Output: The workload was overwhelming with three assignments each week, each requiring three hours to complete and with tight deadlines. Moreover, some of the assignments were disorganized and lacked clear instructions.\n
+    ---\n
+    Question: {question_content}\n
+    Previous Answer: {original_answer or "not answered yet"}\n
+    User's Last Message: {user_message}\n
+    """
+
+        initialize_DSPy(lm_name="gpt-3.5-turbo")
+
+        pure_prompt = dspy.Predict(PurePrompt)
+        updated_answer = pure_prompt(prompt=prompt).output
+        return updated_answer

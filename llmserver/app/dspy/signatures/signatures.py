@@ -69,6 +69,7 @@ class AssessUsefulness(dspy.Signature):
     extraction = dspy.OutputField(desc="a string extracted from the messages")
     print("Class Initialized : AssessUsefulness")
 
+
 class CheckEnoughAnswerForQuestion(dspy.Signature):
     """Check if the answer is enough for the question."""
 
