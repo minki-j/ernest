@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Form, Response
 from pydantic import BaseModel
 from datetime import datetime
+from bson.objectid import ObjectId
 
 import dspy
 from app.dspy.modules.chatbot import Chatbot
@@ -10,11 +11,7 @@ from pprint import pprint
 
 from app.utils.twilio import send_sms
 
-from app.utils.mongodb import (
-    fetch_chat_history,
-    update_chat_history,
-    update_question_answer,
-)
+from app.utils.mongodb import fetch_document, update_document
 
 
 class QuestionRequest(BaseModel):
@@ -38,27 +35,16 @@ def reply_to_message(
 ):
     user_message = Body
     user_phone_number = From
-    enoughness_threshold = 0.5
 
-    # update the answer based on the user's last message
-    result= update_question_answer(
-            user_phone_number=user_phone_number,
-            user_message=user_message,
-            n=4,
-            enoughness_threshold=enoughness_threshold,
-        )
-    print("updated answer: ", result["updated_answer"])
-
-    # !! TODO: relevant question can be more than one. Need a better way to detect and handle it. In the meantime, I'll just assume that the user replied to the lastest question.
-    chat_data = {
-        "relevant_question": result["relevant_question"],
-        "updated_answer": result["updated_answer"],
-        "ref_message_ids": result["ref_message_ids"],
-        "unasked_questions": result["unasked_questions"],
-        "messages": result["document"]["messages"],
-        "context": result["document"]["user_info"],
-        "enoughness_threshold": enoughness_threshold,
-    }
+    document = fetch_document(user_phone_number)
+    document["messages"].append(
+        {
+            "id": ObjectId(),
+            "role": "user",
+            "content": user_message,
+            "created_at": datetime.now().isoformat(),
+        }
+    )
 
     if model == "llama3_8b":
         if vllm:
@@ -70,19 +56,16 @@ def reply_to_message(
     else:
         chatbot = Chatbot(lm_name="gpt-3.5-turbo")
 
-    pred = chatbot.forward(chat_data)
+    pred = chatbot.forward(document)
 
-    # send_sms(pred.reply, user_phone_number)
+    reply = pred.reply
+    new_document = pred.new_document
 
-    was_successful = update_chat_history(
-        user_phone_number,
-        chat_data=chat_data,
-        reply=pred.reply,
-        next_question=pred.next_question,
-    )
+    send_sms(user_phone_number, reply)
+
+    was_successful = update_document(user_phone_number, document=new_document)
 
     if not was_successful:
-        # TODO: delete updated answer from the database
-        return {"message": "ERROR: Could not update chat history."}
+        return {"message": "ERROR: Could not update the backend."}
 
-    return {"message": pred.reply if pred else "ERROR: pred is None"}
+    return {"message": reply}

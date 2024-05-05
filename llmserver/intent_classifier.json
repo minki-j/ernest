@@ -1,0 +1,63 @@
+{
+  "classify_intent": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "listen to westbam alumb allergic on google music",
+        "options": "not provided",
+        "intent": "PlayMusic"
+      },
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "add step to me to the 50 cl\u00e1sicos playlist",
+        "options": "not provided",
+        "intent": "AddToPlaylist"
+      },
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "play the song little robin redbreast",
+        "options": "not provided",
+        "intent": "PlayMusic"
+      },
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "please add iris dement to my playlist this is selena",
+        "options": "not provided",
+        "intent": "AddToPlaylist"
+      },
+      {
+        "intent": "RateBook",
+        "question": "i give this current textbook a rating value of 1 and a best rating of 6"
+      },
+      {
+        "intent": "Greetings",
+        "question": "Good Morning"
+      },
+      {
+        "intent": "PlayMusic",
+        "question": "play a popular chant by brian epstein"
+      },
+      {
+        "intent": "PlayMusic",
+        "question": "i want to listen to seventies music"
+      },
+      {
+        "intent": "AddToPlaylist",
+        "question": "add slimm cutta calhoun to my this is prince playlist"
+      },
+      {
+        "intent": "SearchScreeningEvent",
+        "question": "find fish story"
+      }
+    ],
+    "signature_instructions": "Classify the given input's intent.",
+    "signature_prefix": "Intent:"
+  }
+}
