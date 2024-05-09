@@ -31,7 +31,7 @@ class Chatbot(dspy.Module):
         self.enoughness_score_threshold = enoughness_threshold
 
         self.generate_chat_reply = dspy.Predict(GenerateChatReply)
-        self.check_enough_answer_for_question = dspy.Predict(CheckEnoughAnswerForQuestion)
+        self.check_enough_answer_for_question = dspy.Predict(CheckEnougcheck_enough_answer_for_questionhAnswerForQuestion)
         self.choose_next_question = dspy.Predict(ChooseNextQuestion)
 
         print("Class Initialized: Chatbot")

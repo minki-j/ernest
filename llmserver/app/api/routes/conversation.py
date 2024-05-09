@@ -13,6 +13,7 @@ from app.utils.twilio import send_sms
 
 from app.utils.mongodb import fetch_document, update_document
 
+from app.langchain.reply_chat import langgraph_app
 
 class QuestionRequest(BaseModel):
     message: str
@@ -45,23 +46,20 @@ def reply_to_message(
             "created_at": datetime.now().isoformat(),
         }
     )
+    document["ephemeral"] = {
+        "enoughness_threshold": 0.8,
+    }
 
-    if model == "llama3_8b":
-        if vllm:
-            chatbot = Chatbot(lm_name="llama3_8b_on_vllm")
-        else:
-            chatbot = Chatbot(lm_name="llama3_8b")
-    elif model == "claude-3-haiku-20240307":
-        chatbot = Chatbot(lm_name="claude-3-haiku-20240307")
-    else:
-        chatbot = Chatbot(lm_name="gpt-3.5-turbo")
+    pred = langgraph_app.invoke(document)
+    print(f"==>> pred keys: {pred.keys()}")
+    print(f"==>> message: {pred["ephemeral"]["message"]}")
 
-    pred = chatbot.forward(document)
+    reply = pred["ephemeral"]["message"]
 
-    reply = pred.reply
-    new_document = pred.new_document
+    # drop the ephemeral key
+    new_document = pred.pop("ephemeral", None)
 
-    send_sms(user_phone_number, reply)
+    # send_sms(user_phone_number, reply)
 
     was_successful = update_document(user_phone_number, document=new_document)
 
