@@ -28,7 +28,7 @@ class GenerateChatReply(dspy.Signature):
     context = dspy.InputField(desc="context")
     conversation = dspy.InputField(desc="converation")
     instruction= dspy.InputField(desc="may contain some instruction to reply in a specific way or about some content")
-    bot = dspy.OutputField(desc="reply from the bot")
+    ai = dspy.OutputField(desc="reply from the AI")
 
 
 class IntentClassifier(dspy.Signature):

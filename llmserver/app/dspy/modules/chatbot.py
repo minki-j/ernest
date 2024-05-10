@@ -50,7 +50,7 @@ class Chatbot(dspy.Module):
 
         id_of_last_bot_message = None
         for msg in reversed(document["messages"]):
-            if msg["role"] == "bot":
+            if msg["role"] == "ai":
                 id_of_last_bot_message = msg["id"]
                 break
 
@@ -117,8 +117,8 @@ class Chatbot(dspy.Module):
         document["messages"].append(
             {
                 "id": bot_reply_id,
-                "role": "bot",
-                "content": pred.bot,
+                "role": "ai",
+                "content": pred.ai,
                 "created_at": datetime.now().isoformat(),
             }
         )
@@ -134,7 +134,7 @@ class Chatbot(dspy.Module):
         document["questions"][relevant_question_idx]["reference_message_ids"].append(bot_reply_id)
 
         return dspy.Prediction(
-            reply=pred.bot,
+            reply=pred.ai,
             new_document=document,
         )
 

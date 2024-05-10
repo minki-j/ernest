@@ -10,6 +10,8 @@ from bson.objectid import ObjectId
 import dspy
 from app.dspy.signatures.signatures import PurePrompt
 from app.dspy.utils.initialize_DSPy import initialize_DSPy
+from pymongo import ReturnDocument
+
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
@@ -19,13 +21,20 @@ def fetch_document(phone_number: str) -> dict:
     try:
         db = client.get_database('chat_history')
         history_collection= db.get_collection('history')
-        document = history_collection.find_one(
-            {
+        document = history_collection.find_one_and_update(
+            {"phone_number": phone_number},
+            {"$setOnInsert": {
                 "phone_number": phone_number,
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat(),
+                "user_info": {"age": "30"},
+                "messages": [], 
+                "questions": [{"id": ObjectId(), "content": "What is your name?", "created_at": datetime.now().isoformat()}],
+                "ephemeral": {}
+                }
             },
-            {
-                '_id': 0
-            }
+            upsert=True,
+            return_document=ReturnDocument.AFTER
         )
     except Exception as e:
         print(e)

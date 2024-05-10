@@ -38,7 +38,7 @@ def reply_to_message(
     user_phone_number = From
 
     document = fetch_document(user_phone_number)
-    document["messages"].append(
+    document.setdefault("messages", []).append(
         {
             "id": ObjectId(),
             "role": "user",
@@ -49,19 +49,19 @@ def reply_to_message(
     document["ephemeral"] = {
         "enoughness_threshold": 0.8,
     }
+    # document type = langgraph.graph.state.compiledStateGraph
+    document = langgraph_app.invoke(document)
+    print(f"==>> document keys: {document.keys()}")
+    print(f"==>> message: {document["ephemeral"]["message"]}")
 
-    pred = langgraph_app.invoke(document)
-    print(f"==>> pred keys: {pred.keys()}")
-    print(f"==>> message: {pred["ephemeral"]["message"]}")
-
-    reply = pred["ephemeral"]["message"]
+    reply = document["ephemeral"]["message"]
 
     # drop the ephemeral key
-    new_document = pred.pop("ephemeral", None)
+    document["ephemeral"] = {}
 
     # send_sms(user_phone_number, reply)
 
-    was_successful = update_document(user_phone_number, document=new_document)
+    was_successful = update_document(user_phone_number, document=document)
 
     if not was_successful:
         return {"message": "ERROR: Could not update the backend."}
