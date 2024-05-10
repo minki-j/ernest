@@ -22384,3 +22384,19 @@ RuntimeError: cannot schedule new futures after shutdown
 3 changes detected
 1 change detected
 1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+1 change detected
+Method or web function <function CompileIntentClassifier.compile_t5 at 0x1256ff420> was never turned into a function. Did you forget a @stub.function or @stub.cls decorator?
+Method or web function <function CompileIntentClassifier.compile_t5 at 0x1256ff420> was never turned into a function. Did you forget a @stub.function or @stub.cls decorator?

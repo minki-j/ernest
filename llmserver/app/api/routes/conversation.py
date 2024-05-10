@@ -47,7 +47,7 @@ def reply_to_message(
         }
     )
     document["ephemeral"] = {
-        "enoughness_threshold": 0.8,
+        "enoughness_threshold": 0.6,
     }
     # document type: langgraph.graph.state.compiledStateGraph
     document = langgraph_app.invoke(document)
@@ -57,8 +57,8 @@ def reply_to_message(
     # drop the ephemeral key
     document["ephemeral"] = {}
 
-    # send_sms(user_phone_number, reply)
-    
+    send_sms(user_phone_number, reply)
+
     was_successful = update_document(user_phone_number, document=document)
 
     if not was_successful:
