@@ -303,7 +303,12 @@ def generate_reply(documentState: DocumentState):
         )
         return documentState
 
-    messages = messages_to_chatPromptTemplate(documentState["messages"][-4:])
+    messages = messages_to_chatPromptTemplate(documentState["messages"][-6:])
+
+    # Anthropic model requires the first message to be from the user
+    if messages[0][0]["role"] != "user":
+        messages = messages[1:]
+
     prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_message),
