@@ -49,7 +49,7 @@ class AssessIntentClassification(dspy.Signature):
     is_correct = dspy.OutputField(
         desc='''return "true" if gold_intent and pred share the same meaning, "false" if they differ. do not repeat the question.'''
     )
-    print("Class Initialized : AssessIntentClassification")
+    print("Class Initialized: AssessIntentClassification")
 
 
 class ChooseNextQuestion(dspy.Signature):
@@ -58,7 +58,7 @@ class ChooseNextQuestion(dspy.Signature):
     recent_messages = dspy.InputField(desc="recent messages in the conversation")
     options = dspy.InputField(desc="may contain multiple choice options for possible next questions")
     next_question = dspy.OutputField(desc="the next question to ask")
-    print("Class Initialized : ChooseNextQuestion")
+    print("Class Initialized: ChooseNextQuestion")
 
 
 class AssessUsefulness(dspy.Signature):
@@ -67,7 +67,7 @@ class AssessUsefulness(dspy.Signature):
     last_messages = dspy.InputField(desc="last 3 messages in the conversation")
     usefulness_score = dspy.OutputField(desc="a score between 0 and 1")
     extraction = dspy.OutputField(desc="a string extracted from the messages")
-    print("Class Initialized : AssessUsefulness")
+    print("Class Initialized: AssessUsefulness")
 
 
 class CheckEnoughAnswerForQuestion(dspy.Signature):
@@ -76,4 +76,4 @@ class CheckEnoughAnswerForQuestion(dspy.Signature):
     question = dspy.InputField(desc="question")
     answer = dspy.InputField(desc="answer")
     enoughness_score = dspy.OutputField(desc="a score between 0 and 1")
-    print("Class Initialized : CheckEnoughAnswerForQuestion")
+    print("Class Initialized: CheckEnoughAnswerForQuestion")

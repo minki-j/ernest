@@ -14,6 +14,7 @@ image = (
         "anthropic",
         "langchain",
         "langchain-openai",
+        "langchain_anthropic",
         "langgraph",
         "langchainhub",
     )

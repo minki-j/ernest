@@ -1,4 +1,5 @@
 from langchain_openai import ChatOpenAI, OpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.tools import tool
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
@@ -17,9 +18,17 @@ from datetime import datetime
 import os
 
 output_parser = StrOutputParser()
-model = ChatOpenAI(model="gpt-3.5-turbo")
+# model = ChatOpenAI(model="gpt-3.5-turbo")
+model = ChatAnthropic(model="claude-3-haiku-20240307")
 llm = OpenAI()
 
+# Features to add
+# todo: export the report of the survey
+# todo: Add purpose of the survey
+# todo: Add quantitaive version of question
+# todo: conceal PII when asked
+# todo: discard previous answer when asked
+# todo: add local llama3 model
 
 def check_relevant_question(documentState: DocumentState):
     print("==>> check_relevant_question")
@@ -60,8 +69,11 @@ def need_to_pick_new_question(
         print("YES -> update_answer -> check_enoughness_score")
         return "update_answer"
 
-#!! TODO: when user's answer can be added to other questions than the current one, we need to update the answer for that question as well.
+# todo: when user's answer can be added to other questions than the current one, we need to update the answer for that question as well. --> Solution: embed the question+answers in the latent space and aggregate nearest neighbors.
 def update_answer(documentState: DocumentState):
+    if documentState["messages"][-1]["content"].lower() == "pass":
+        return documentState
+    
     print("==>> update_answer")
     relevant_question_idx = documentState["ephemeral"]["relevant_question_idx"]
     question_content = documentState["questions"][relevant_question_idx]["content"]
@@ -86,7 +98,7 @@ User's Last Message: {user_message}\n
 Updated Answer:
 """
     )
-    #!! TODO: if the user's last message is not related to the question, then keep the previous answer as an updated answer.
+    #todo: if the user's last message is not related to the question, then keep the previous answer as an updated answer.
 
     prompt = prompt.format(
         question_content=question_content,
@@ -94,8 +106,9 @@ Updated Answer:
         user_message=documentState["messages"][-1]["content"],
     )
 
-    #!! TODO: make this step robust. The answer could be replaced to an error message
+    #todo: make this step robust. The answer could be replaced to an error message
     updated_answer = llm.invoke(prompt)
+    updated_answer = updated_answer.strip().split("\n")[0]
     print(f"updated_answer: {updated_answer}")
 
     documentState["questions"][relevant_question_idx]["answer"] = updated_answer
@@ -108,8 +121,12 @@ def check_enoughness_score(documentState: DocumentState):
 
     relevant_question_idx = documentState["ephemeral"]["relevant_question_idx"]
 
+    if documentState["messages"][-1]["content"].lower() == "pass":
+        documentState["questions"][relevant_question_idx]["enough"] = 1.0
+        return documentState
+
     prompt = PromptTemplate.from_template(
-        #!! TODO: Improve this inference so that it returns more accurate scores. We need a good set of few shots.
+        #todo: Improve this inference so that it returns more accurate scores. We need a good set of few shots.
         """Check if the answer is enough for the question. The score should be in range of 0 and 1. Here are examples:
         Question: What is your favorite color and why?
         Answer: My favorite color is blue.
@@ -169,9 +186,17 @@ def pick_next_question(documentState: DocumentState):
     recent_messages = messages_to_string(documentState["messages"][-4:])
     options = " / ".join(unasked_questions)
 
+    # todo: if the options are empty, then create a new question. Need a separate prompt for this task
+    # todo: Add "asked question list" and "purpose of survey".
     # if len(options) == 0:
+    #     prompt = PromptTemplate.from_template(
+    #         """
+    #    You are a survey bot generating the next question based on the current conversation flow and already asked questions.
+    #     """
+    #     )
     #     return documentState
 
+    # todo: make sure that the ai doesn't create a new question that is not in the options.
     prompt = PromptTemplate.from_template(
         """
 You are a survey bot picking the next question based on the current conversation flow. Don't create a new question that is not in the options.
@@ -192,13 +217,13 @@ options:
 next_question: What's your favorite country?
 ---
 Now it's your turn to pick the next question. Here is the information you need:
-recent_messages: {recent_messages}
+last 4 messages: {recent_messages}
 options: {options}
 next_question:
 """
     )
 
-    #!! TODO: change it to a structed output
+    # todo: change it to a structed output
     chain = prompt | llm | output_parser
     result = chain.invoke({"recent_messages": recent_messages, "options": options})
     result = result.strip()
@@ -206,7 +231,7 @@ next_question:
 
     next_question_idx = None
     for idx, question in enumerate(documentState["questions"]):
-        #!! TODO: instead of hard comparison, use a similarity measure
+        # todo: instead of hard comparison, use a similarity measure
         if question["content"].strip() == result:
             next_question_idx = idx
             break
@@ -232,6 +257,7 @@ def ask_more_about_current_topic(documentState: DocumentState):
     relevant_question_idx = documentState["ephemeral"]["relevant_question_idx"]
     relevant_question = documentState["questions"][relevant_question_idx]
 
+    #todo: add examples
     prompt = PromptTemplate.from_template(
         """
 Ask more questions about the current question based on the user's last message and the current answer.

@@ -1,17 +1,10 @@
-from fastapi import APIRouter, Form, Response
+from fastapi import APIRouter, Form
 from pydantic import BaseModel
 from datetime import datetime
 from bson.objectid import ObjectId
 
-import dspy
-from app.dspy.modules.chatbot import Chatbot
-from app.dspy.modules.intent_classifier import IntentClassifierModule
-
-from pprint import pprint
-
 from app.utils.twilio import send_sms
-
-from app.utils.mongodb import fetch_document, update_document
+from app.utils.mongodb import fetch_document, update_document, delete_document
 
 from app.langchain.reply_chat import langgraph_app
 
@@ -31,11 +24,16 @@ def root():
 def reply_to_message(
     From: str = Form(...),
     Body: str = Form(...),
-    model: str = "gpt-3.5-turbo",
-    vllm: bool = True,
+    test: str = Form("false"),
+    reset: str = Form("false"),
 ):
+    test = test.lower() == "true"
+    reset = reset.lower() == "true"
     user_message = Body
     user_phone_number = From
+
+    if reset:
+        delete_document(user_phone_number)
 
     document = fetch_document(user_phone_number)
     document.setdefault("messages", []).append(
@@ -57,7 +55,8 @@ def reply_to_message(
     # drop the ephemeral key
     document["ephemeral"] = {}
 
-    send_sms(user_phone_number, reply)
+    if not test:
+        send_sms(user_phone_number, reply)
 
     was_successful = update_document(user_phone_number, document=document)
 

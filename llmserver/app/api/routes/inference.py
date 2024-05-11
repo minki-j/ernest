@@ -7,6 +7,7 @@ from app.dspy.signatures.signatures import GenerateAnswer
 from app.dspy.modules.rag import RAG
 from app.dspy.modules.intent_classifier import IntentClassifier
 
+print("Inference API route working fine")
 router = APIRouter()
 
 @router.get("/")
