@@ -7,7 +7,7 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from pymongo import ReturnDocument
 
-from app.utils.default_questions import DEFAULT_QUESTIONS
+from app.utils.default_topics import DEFAULT_TOPICS
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
@@ -25,8 +25,11 @@ def fetch_document(phone_number: str) -> dict:
                 "updated_at": datetime.now().isoformat(),
                 "user_info": {"age": "30"},
                 "messages": [], 
-                "questions": [*DEFAULT_QUESTIONS],
-                "ephemeral": {}
+                "topics": [*DEFAULT_TOPICS],
+                "ephemeral": {
+                    "current_topic_id": None,
+                    "current_question_id": None,
+                }
                 }
             },
             upsert=True,

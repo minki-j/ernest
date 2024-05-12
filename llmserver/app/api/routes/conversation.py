@@ -1,15 +1,12 @@
-from fastapi import APIRouter, Form
-from pydantic import BaseModel
 from datetime import datetime
 from bson.objectid import ObjectId
+
+from fastapi import APIRouter, Form
 
 from app.utils.twilio import send_sms
 from app.utils.mongodb import fetch_document, update_document, delete_document
 
-from app.langchain.reply_chat import langgraph_app
-
-class QuestionRequest(BaseModel):
-    message: str
+from app.langchain.main import langgraph_app
 
 
 router = APIRouter()
@@ -47,20 +44,18 @@ def reply_to_message(
     document["ephemeral"] = {
         "enoughness_threshold": 0.6,
     }
-    # document type: langgraph.graph.state.compiledStateGraph
+
     document = langgraph_app.invoke(document)
 
-    reply = document["ephemeral"]["message"]
+    was_update_successful = update_document(user_phone_number, document=document)
 
-    # drop the ephemeral key
-    document["ephemeral"] = {}
+    if not was_update_successful:
+        error_message = "Apologies for the inconvenience🙏🏻 We encountered an error while processing your message. Kindly try again later. If the issue persist, don't hesitate to reach out to us for assistance. Thank you for your understanding😊"
+        send_sms(user_phone_number, error_message)
+        return {"message": "updating MongoDB failed"}
 
+    reply = document["ephemeral"]["reply_message"]
     if not test:
         send_sms(user_phone_number, reply)
-
-    was_successful = update_document(user_phone_number, document=document)
-
-    if not was_successful:
-        return {"message": "ERROR: Could not update the backend."}
 
     return {"message": reply}

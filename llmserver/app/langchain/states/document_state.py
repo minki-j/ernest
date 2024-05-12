@@ -6,5 +6,5 @@ class DocumentState(TypedDict):
     updated_at: str
     user_info: object
     messages: list
-    questions: list
-    ephemeral: dict
+    topics: list[dict[list[dict]]] # a list of topics(dict) that contain a list of questions(dict)
+    ephemeral: dict # to pass data between nodes
