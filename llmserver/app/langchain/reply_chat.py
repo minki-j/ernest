@@ -69,7 +69,7 @@ def need_to_pick_new_question(
         print("YES -> update_answer -> check_enoughness_score")
         return "update_answer"
 
-#todo: user's answer can be related to other questions than the current one. (having MECE topics reduces the scope of this problem)
+# todo: user's answer can be related to other questions than the current one. (having MECE topics reduces the scope of this problem)
 def update_answer(documentState: DocumentState):
     if documentState["messages"][-1]["content"].lower() == "pass":
         return documentState
@@ -346,7 +346,7 @@ def generate_reply(documentState: DocumentState):
 # 1. if there is no previous conversation or no relevant question
 #     1.1 pick a question from the list (tool)
 # 2. if a relevant question exists
-#     2.2 update the answer with user's last message
+#     2.2 u hhpdate the answer with user's last message
 #     2.3 check if the answer is enough
 #         2.3.1 if not enough, ask more questions about the current topic
 #         2.3.2 if enough, choose the next question
@@ -374,3 +374,6 @@ graph.add_edge("generate_reply", END)
 
 graph.set_entry_point("check_relevant_question")
 langgraph_app = graph.compile()
+
+# visualize the graph
+# langgraph_app.get_graph().draw_png().save("./graph_images/langgraph.png")
