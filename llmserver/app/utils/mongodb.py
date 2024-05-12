@@ -27,8 +27,8 @@ def fetch_document(phone_number: str) -> dict:
                 "messages": [], 
                 "topics": [*DEFAULT_TOPICS],
                 "ephemeral": {
-                    "current_topic_id": None,
-                    "current_question_id": None,
+                    "current_topic_idx": 0,
+                    "current_question_idx": 0,
                 }
                 }
             },
