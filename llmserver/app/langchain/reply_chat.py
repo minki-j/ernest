@@ -69,7 +69,7 @@ def need_to_pick_new_question(
         print("YES -> update_answer -> check_enoughness_score")
         return "update_answer"
 
-# todo: when user's answer can be added to other questions than the current one, we need to update the answer for that question as well. --> Solution: embed the question+answers in the latent space and aggregate nearest neighbors.
+#todo: user's answer can be related to other questions than the current one. (having MECE topics reduces the scope of this problem)
 def update_answer(documentState: DocumentState):
     if documentState["messages"][-1]["content"].lower() == "pass":
         return documentState
@@ -304,10 +304,6 @@ def generate_reply(documentState: DocumentState):
         return documentState
 
     messages = messages_to_chatPromptTemplate(documentState["messages"][-6:])
-
-    # Anthropic model requires the first message to be from the user
-    if messages[0][0]["role"] != "user":
-        messages = messages[1:]
 
     prompt = ChatPromptTemplate.from_messages(
         [
