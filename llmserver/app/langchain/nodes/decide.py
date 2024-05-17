@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from dspy.predict.langchain import LangChainPredict, LangChainModule
 
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
 from app.langchain.utils.messages_to_string import messages_to_string
 from app.langchain.common import llm, chat_model, output_parser
 
@@ -17,38 +17,38 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from dspy.predict.langchain import LangChainPredict, LangChainModule
 
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
 from app.langchain.utils.messages_to_string import messages_to_string
 from app.langchain.common import llm, chat_model, output_parser
 
 
-def decide_next_question(documentState: DocumentState):
+def decide_next_question(Documents: Documents):
     print("==>> decide_next_question")
-    current_topic_idx = documentState["ephemeral"]["current_topic_idx"]
+    current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
 
     unasked_questions = []
-    for question in documentState["topics"][current_topic_idx]["questions"]:
+    for question in Documents["topics"][current_topic_idx]["questions"]:
         if (
             question.setdefault("enough", 0)
-            < documentState["ephemeral"]["enoughness_threshold"]
+            < Documents["ephemeral"]["enoughness_threshold"]
         ):
             unasked_questions.append(question["content"])
 
     if len(unasked_questions) == 0:
-        if not documentState["ephemeral"]["current_topic_idx"] == len(
-            documentState["topics"]
+        if not Documents["ephemeral"]["current_topic_idx"] == len(
+            Documents["topics"]
         ):
             current_topic_idx += 1
-            documentState["ephemeral"]["current_topic_idx"] = current_topic_idx
+            Documents["ephemeral"]["current_topic_idx"] = current_topic_idx
         else:
             current_topic_idx = -1
-            documentState["ephemeral"]["current_topic_idx"] = current_topic_idx
+            Documents["ephemeral"]["current_topic_idx"] = current_topic_idx
 
     # if there is no more topics to ask, then skip this node
     if current_topic_idx < 0:
-        return documentState
+        return Documents
 
-    recent_messages = messages_to_string(documentState["messages"][-4:])
+    recent_messages = messages_to_string(Documents["messages"][-4:])
     options = " / ".join(unasked_questions)
 
     # todo: if the options are empty, then create a new question. Need a separate prompt for this task
@@ -59,7 +59,7 @@ def decide_next_question(documentState: DocumentState):
     #    You are a survey bot generating the next question based on the current conversation flow and already asked questions.
     #     """
     #     )
-    #     return documentState
+    #     return Documents
 
     # todo: make sure that the ai doesn't create a new question that is not in the options.
     prompt = PromptTemplate.from_template(
@@ -96,17 +96,17 @@ next_question:
 
     next_question_idx = None
     for idx, question in enumerate(
-        documentState["topics"][current_topic_idx]["questions"]
+        Documents["topics"][current_topic_idx]["questions"]
     ):
         # todo: instead of a hard comparison, use a similarity measure
         if question["content"].strip() == result:
             next_question_idx = idx
             break
 
-    # add question to documentState if it's new
+    # add question to Documents if it's new
     if next_question_idx is None:
-        next_question_idx = len(documentState["topics"][current_topic_idx]["questions"])
-        documentState["questions"].append(
+        next_question_idx = len(Documents["topics"][current_topic_idx]["questions"])
+        Documents["questions"].append(
             {
                 "id": ObjectId(),
                 "content": result,
@@ -114,30 +114,30 @@ next_question:
             }
         )
     print("next_question_idx: ", next_question_idx)
-    documentState["ephemeral"]["next_question"] = result
-    documentState["ephemeral"]["next_question_idx"] = next_question_idx
+    Documents["ephemeral"]["next_question"] = result
+    Documents["ephemeral"]["next_question_idx"] = next_question_idx
 
-    return documentState
+    return Documents
 
 
-def decide_whether_to_move_to_next_topic(documentState: DocumentState):
+def decide_whether_to_move_to_next_topic(Documents: Documents):
     print("==>> decide_whether_to_move_to_next_topic")
-    current_topic_idx = documentState["ephemeral"]["current_topic_idx"]
+    current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
 
     unasked_questions = []
-    for question in documentState["topics"][current_topic_idx]["questions"]:
+    for question in Documents["topics"][current_topic_idx]["questions"]:
         if (
             question.setdefault("enough", 0)
-            < documentState["ephemeral"]["enoughness_threshold"]
+            < Documents["ephemeral"]["enoughness_threshold"]
         ):
             unasked_questions.append(question["content"])
 
     if len(unasked_questions) == 0:
-        if not documentState["ephemeral"]["current_topic_idx"] == len(
-            documentState["topics"]
+        if not Documents["ephemeral"]["current_topic_idx"] == len(
+            Documents["topics"]
         ):
-            documentState["ephemeral"]["current_topic_idx"] += 1
+            Documents["ephemeral"]["current_topic_idx"] += 1
         else:
-            documentState["ephemeral"]["current_topic_idx"] = -1
+            Documents["ephemeral"]["current_topic_idx"] = -1
     
-    return documentState
+    return Documents

@@ -4,9 +4,11 @@ from bson.objectid import ObjectId
 from fastapi import APIRouter, Form
 
 from app.utils.twilio import send_sms
-from app.utils.mongodb import fetch_document, update_document, delete_document
+from app.utils.mongodb import fetch_documents, update_document, delete_document
 
 from app.langchain.langgraph_main import langgraph_app
+from app.schemas.schemas import Message
+from app.langchain.common import Documents
 
 
 router = APIRouter()
@@ -19,31 +21,30 @@ def root():
 
 @router.post("/chat")
 def reply_to_message(
-    From: str = Form(...),
-    Body: str = Form(...),
+    user_id: str = Form(...),
+    vendor_id: str = Form(...),
+    review_id: str = Form(...),
+    user_msg: str = Form(...),
     test: str = Form("false"),
     reset: str = Form("false"),
 ):
     test = test.lower() == "true"
     reset = reset.lower() == "true"
-    user_message = Body
-    user_phone_number = From
 
     if reset:
-        delete_document(user_phone_number)
+        delete_document(review_id)
 
-    document = fetch_document(user_phone_number)
-    document.setdefault("messages", []).append(
-        {
-            "id": ObjectId(),
-            "role": "user",
-            "content": user_message,
-            "created_at": datetime.now().isoformat(),
-        }
+    documents: Documents = fetch_documents(review_id, user_id, vendor_id)
+    documents.update(
+        Message(
+            id=ObjectId(),
+            role="user",
+            content=user_msg,
+            created_at=datetime.now().isoformat(),
+            references=[],
+        )
     )
-    document["ephemeral"] = {
-        "enoughness_threshold": 0.6,
-    }
+    documents
 
     document = langgraph_app.invoke(document)
 

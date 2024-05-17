@@ -1,5 +1,5 @@
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
 
-def start(documentState: DocumentState):
+def start(Documents: Documents):
     print("==>> start")
-    return documentState
+    return Documents

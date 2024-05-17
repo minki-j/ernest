@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from dspy.predict.langchain import LangChainPredict, LangChainModule
 
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
 from app.langchain.utils.messages_to_string import (
     messages_to_string,
     messages_to_chatPromptTemplate,
@@ -22,17 +22,17 @@ class EnoughnessScore(BaseModel):
         description="The enoughness score of the answer to the question. Range is between 0 and 1."
     )
 
-def evaluate_enoughness_score(documentState: DocumentState):
+def evaluate_enoughness_score(Documents: Documents):
     print("==>> generate_enoughness_score")
 
-    relevant_question_idx = documentState["ephemeral"]["relevant_question_idx"]
-    current_topic_idx = documentState["ephemeral"]["current_topic_idx"]
+    relevant_question_idx = Documents["ephemeral"]["relevant_question_idx"]
+    current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
 
-    if documentState["messages"][-1]["content"].lower() == "pass":
-        documentState["topics"][current_topic_idx]["questions"][relevant_question_idx][
+    if Documents["messages"][-1]["content"].lower() == "pass":
+        Documents["topics"][current_topic_idx]["questions"][relevant_question_idx][
             "enough"
         ] = 1.0
-        return documentState
+        return Documents
 
     prompt = PromptTemplate.from_template(
         # todo: Improve this inference so that it returns more accurate scores. We need a good set of few shots.
@@ -54,7 +54,7 @@ def evaluate_enoughness_score(documentState: DocumentState):
         answer: {answer}
         enoughness_score:"""
     )
-    relevant_question = documentState["topics"][current_topic_idx]["questions"][
+    relevant_question = Documents["topics"][current_topic_idx]["questions"][
         relevant_question_idx
     ]
     prompt = prompt.format(
@@ -64,25 +64,25 @@ def evaluate_enoughness_score(documentState: DocumentState):
     enoughness_score = result.enoughness_score
     print(f"enoughness_score: ", enoughness_score)
 
-    documentState["topics"][current_topic_idx]["questions"][relevant_question_idx][
+    Documents["topics"][current_topic_idx]["questions"][relevant_question_idx][
         "enough"
     ] = float(enoughness_score.strip().split("\n")[0])
 
-    return documentState
+    return Documents
 
 
 # todo: user's answer can be related to other questions than the current one. (having MECE topics reduces the scope of this problem)
-def generate_answer_with_new_msg(documentState: DocumentState):
-    if documentState["messages"][-1]["content"].lower() == "pass":
-        return documentState
+def generate_answer_with_new_msg(Documents: Documents):
+    if Documents["messages"][-1]["content"].lower() == "pass":
+        return Documents
 
     print("==>> generate_answer_with_new_msg")
-    current_topic_idx = documentState["ephemeral"]["current_topic_idx"]
-    relevant_question_idx = documentState["ephemeral"]["relevant_question_idx"]
-    question_content = documentState["topics"][current_topic_idx]["questions"][
+    current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
+    relevant_question_idx = Documents["ephemeral"]["relevant_question_idx"]
+    question_content = Documents["topics"][current_topic_idx]["questions"][
         relevant_question_idx
     ]["content"]
-    original_answer = documentState["topics"][current_topic_idx]["questions"][
+    original_answer = Documents["topics"][current_topic_idx]["questions"][
         relevant_question_idx
     ].get("answer", "not answered yet.")
 
@@ -108,7 +108,7 @@ Updated Answer:
     prompt = prompt.format(
         question_content=question_content,
         original_answer=original_answer,
-        user_message=documentState["messages"][-1]["content"],
+        user_message=Documents["messages"][-1]["content"],
     )
 
     # todo: make this step robust. The answer could be replaced to an error message
@@ -116,16 +116,16 @@ Updated Answer:
     updated_answer = updated_answer.strip().split("\n")[0]
     print(f"updated_answer: {updated_answer}")
 
-    documentState["topics"][current_topic_idx]["questions"][relevant_question_idx][
+    Documents["topics"][current_topic_idx]["questions"][relevant_question_idx][
         "answer"
     ] = updated_answer
 
-    return documentState
+    return Documents
 
 
-def generate_new_q_for_current_topic(documentState: DocumentState):
-    relevant_question_idx = documentState["ephemeral"]["relevant_question_idx"]
-    relevant_question = documentState["questions"][relevant_question_idx]
+def generate_new_q_for_current_topic(Documents: Documents):
+    relevant_question_idx = Documents["ephemeral"]["relevant_question_idx"]
+    relevant_question = Documents["questions"][relevant_question_idx]
 
     # todo: add examples
     prompt = PromptTemplate.from_template(
@@ -144,25 +144,25 @@ next_question:
         {
             "question": relevant_question["content"],
             "answer": relevant_question["answer"],
-            "last_4_messages": messages_to_string(documentState["messages"][-4:]),
+            "last_4_messages": messages_to_string(Documents["messages"][-4:]),
         }
     )
 
     print(f"next_question: {next_question}")
 
-    documentState["ephemeral"]["next_question"] = next_question
+    Documents["ephemeral"]["next_question"] = next_question
 
-    return documentState
+    return Documents
 
 
-def generate_reply(documentState: DocumentState):
+def generate_reply(Documents: Documents):
     print("==>> generate_reply")
 
-    current_topic_idx = documentState["ephemeral"]["current_topic_idx"]
+    current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
     if current_topic_idx == -1:
         reply = "All of the survey questions are answered. Thank you for your time. Have a great day!"
-        documentState["ephemeral"]["reply_message"] = reply
-        documentState["messages"].append(
+        Documents["ephemeral"]["reply_message"] = reply
+        Documents["messages"].append(
             {
                 "id": ObjectId(),
                 "role": "ai",
@@ -170,11 +170,11 @@ def generate_reply(documentState: DocumentState):
                 "created_at": datetime.now().isoformat(),
             }
         )
-        return documentState
+        return Documents
 
     system_message = "reply to the user. response the last message of the user and ask the next question naturally. the next question is the following: {next_question}"
 
-    messages = messages_to_chatPromptTemplate(documentState["messages"][-6:])
+    messages = messages_to_chatPromptTemplate(Documents["messages"][-6:])
 
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -186,13 +186,13 @@ def generate_reply(documentState: DocumentState):
     chain = prompt | chat_model | output_parser
     reply = chain.invoke(
         {
-            "next_question": documentState["ephemeral"]["next_question"],
+            "next_question": Documents["ephemeral"]["next_question"],
         }
     )
 
-    documentState["ephemeral"]["reply_message"] = reply
+    Documents["ephemeral"]["reply_message"] = reply
     message_id = ObjectId()
-    documentState["messages"].append(
+    Documents["messages"].append(
         {
             "id": message_id,
             "role": "ai",
@@ -203,28 +203,28 @@ def generate_reply(documentState: DocumentState):
 
     # update the reference_message_ids of the relevant question
     # first check if there is a next question
-    relevant_question_idx = documentState["ephemeral"].get("next_question_idx", None)
+    relevant_question_idx = Documents["ephemeral"].get("next_question_idx", None)
 
     # if not found, check the relevant question
     if relevant_question_idx is None:
-        relevant_question_idx = documentState["ephemeral"].get(
+        relevant_question_idx = Documents["ephemeral"].get(
             "relevant_question_idx", None
         )
 
     if relevant_question_idx is not None:
-        documentState["topics"][current_topic_idx]["questions"][relevant_question_idx].setdefault(
+        Documents["topics"][current_topic_idx]["questions"][relevant_question_idx].setdefault(
             "reference_message_ids", []
         ).append(message_id)
 
-    return documentState
+    return Documents
 
 
-def generate_reply_for_not_A(documentState: DocumentState):
+def generate_reply_for_not_A(Documents: Documents):
     print("==>> generate_reply_for_not_A")
 
     reply = "Answering the questions not related to survey will be added soon, but not available at the moment. Thank you for your patience. Have a great day!"
-    documentState["ephemeral"]["reply_message"] = reply
-    documentState["messages"].append(
+    Documents["ephemeral"]["reply_message"] = reply
+    Documents["messages"].append(
         {
             "id": ObjectId(),
             "role": "ai",
@@ -233,4 +233,4 @@ def generate_reply_for_not_A(documentState: DocumentState):
         }
     )
 
-    return documentState
+    return Documents

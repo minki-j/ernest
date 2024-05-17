@@ -6,7 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from dspy.predict.langchain import LangChainPredict, LangChainModule
 
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
 from app.langchain.utils.messages_to_string import (
     messages_to_string,
     messages_to_chatPromptTemplate,
@@ -31,7 +31,7 @@ class ReplyIntent(BaseModel):
     intent: Intents = Field(description="The intent of the reply")
 
 
-def is_reply_A_to_Q(documentState: DocumentState):
+def is_reply_A_to_Q(Documents: Documents):
 
     prompt = PromptTemplate.from_template(
         """You are a reply intent classifier. Pick the intent of the given text. Your reply should be a few words long. 
@@ -66,17 +66,17 @@ def is_reply_A_to_Q(documentState: DocumentState):
 
     result = chain.invoke(
         {
-            "question": documentState["messages"][-2]["content"],
-            "reply": documentState["messages"][-1]["content"],
+            "question": Documents["messages"][-2]["content"],
+            "reply": Documents["messages"][-1]["content"],
             "options": "question, reply, other",
         }
     )
 
     print("Intent: ", result.intent.value)
 
-    if result.intent == Intents.REPLY and documentState["ephemeral"]["relevant_question_idx"] is not None:
+    if result.intent == Intents.REPLY and Documents["ephemeral"]["relevant_question_idx"] is not None:
         return "evaluate_enoughness_score"
-    elif result.intent == Intents.REPLY and documentState["ephemeral"]["relevant_question_idx"] is None:
+    elif result.intent == Intents.REPLY and Documents["ephemeral"]["relevant_question_idx"] is None:
         return "fork1"
     elif result.intent == Intents.QUESTION:
         return "generate_reply_for_not_A"

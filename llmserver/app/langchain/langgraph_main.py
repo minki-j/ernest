@@ -1,7 +1,7 @@
 from langgraph.graph import END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
 
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
 
 from app.langchain.conditional_edges.pick_by_llm import is_reply_A_to_Q
 from app.langchain.conditional_edges.simple_check import is_next_Q
@@ -37,7 +37,7 @@ passthrough_node = RunnablePassthrough()
 #         2.3.1 if not enough, ask more questions about the current topic
 #         2.3.2 if enough, choose the next question
 
-graph = StateGraph(DocumentState)
+graph = StateGraph(Documents)
 
 graph.add_node("start", passthrough_node)
 graph.add_conditional_edges("start", is_reply_A_to_Q)

@@ -9,59 +9,61 @@ from pymongo import ReturnDocument
 
 from app.utils.default_topics import DEFAULT_TOPICS
 
-from app.langchain.states.document_state import DocumentState
+from app.langchain.common import Documents
+
+from app.schemas.schemas import Review, User, Vendor
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
-def fetch_document(phone_number: str) -> DocumentState:
+def fetch_documents(review_id: str, user_id: str, vendor_id: str) -> Documents:
     client = MongoClient(uri, server_api=ServerApi('1'))
 
-    try:
-        db = client.get_database('chat_history')
-        history_collection= db.get_collection('history')
-        document = history_collection.find_one_and_update(
-            {"phone_number": phone_number},
-            {"$setOnInsert": {
-                "phone_number": phone_number,
-                "created_at": datetime.now().isoformat(),
-                "updated_at": datetime.now().isoformat(),
-                "user_info": {"age": "30"},
-                "messages": [{'id': ObjectId(), 'role': 'ai', 'content': "Hey, how are you doing today", 'created_at': '2024-05-15T19:27:53.677708'}], 
-                "topics": [*DEFAULT_TOPICS],
-                "ephemeral": {
-                    "current_topic_idx": 0,
-                    "current_question_idx": 0,
-                }
-                }
-            },
-            upsert=True,
-            return_document=ReturnDocument.AFTER
-        )
-    except Exception as e:
-        print(e)
-        return None
+    db = client.get_database('ernest')
+    
+    user_collection= db.get_collection('user')
+    user = user_collection.find_one({"_id": user_id})
+    if not user:
+        raise ValueError(f"User with id {user_id} not found")
+    
+    vendor_collection= db.get_collection('vendor')
+    vendor = vendor_collection.find_one({"_id": vendor_id})
+    if not vendor:
+        raise ValueError(f"Vendor with id {vendor_id} not found")
 
-    return document
+    review_collection= db.get_collection('review')
+    review = review_collection.find_one_and_update(
+        {"_id": review_id},
+        {"$setOnInsert": Review(user_id=user_id, vendor_id=vendor_id)},
+        upsert=True,
+        return_document=ReturnDocument.AFTER
+    )
+    
+    return Documents(
+        review=review,
+        user=user,
+        vendor=vendor,
+        state=review["state"]
+    )
 
-def update_document(phone_number: str, document: dict) -> bool:
+def update_document(review_id: str, document: dict) -> bool:
     client = MongoClient(uri, server_api=ServerApi('1'))
 
     db = client.get_database('chat_history')
     history_collection= db.get_collection('history')
     history_collection.update_one(
-        {"phone_number": phone_number}, 
+        {"review_id": review_id}, 
         {'$set': document}
     )
 
     return True
 
-def delete_document(phone_number: str) -> bool:
+def delete_document(review_id: str) -> bool:
     client = MongoClient(uri, server_api=ServerApi('1'))
 
     db = client.get_database('chat_history')
     history_collection= db.get_collection('history')
     history_collection.delete_one(
-        {"phone_number": phone_number}
+        {"review_id": review_id}
     )
 
     return True
