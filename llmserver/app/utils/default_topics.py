@@ -1,0 +1,133 @@
+from datetime import datetime
+from bson.objectid import ObjectId
+
+DEFAULT_TOPICS = [
+    {
+        "id": ObjectId(),
+        "type": "topic",
+        "content": "The food of the meetup",
+        "created_at": datetime.now().isoformat(),
+        "questions": [
+            {
+                "id": ObjectId(),
+                "content": "How was the food quality of the meetup?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "What was your best menu at the meetup?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "What was your worst menu at the meetup?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+        ],
+    },
+    {
+        "id": ObjectId(),
+        "type": "topic",
+        "content": "The venue of the meetup",
+        "created_at": datetime.now().isoformat(),
+        "questions": [
+            {
+                "id": ObjectId(),
+                "content": "Did you find the venue easily?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "Was there any inconvenience related to the place?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+        ],
+    },
+    {
+        "id": ObjectId(),
+        "type": "topic",
+        "content": "The speakers of the meetup",
+        "created_at": datetime.now().isoformat(),
+        "questions": [
+            {
+                "id": ObjectId(),
+                "content": "Who was your favorite speaker and why?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "The number of speaker sessions was enough for you?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+        ],
+    },
+    {
+        "id": ObjectId(),
+        "type": "topic",
+        "content": "The socialization of the meetup",
+        "created_at": datetime.now().isoformat(),
+        "questions": [
+            {
+                "id": ObjectId(),
+                "content": "How many new people did you meet at the meetup?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "Did you find the socialization part of the meetup enough?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "Did you feel socializing with the people at the meetup was difficult?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "What was the most interesting conversation you had at the meetup?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+            {
+                "id": ObjectId(),
+                "content": "What do you want us to do to improve the socialization part of the meetup?",
+                "created_at": datetime.now().isoformat(),
+                "answer": "",
+                "enough": 0.0,
+                "reference_message_ids": [],
+            },
+        ],
+    },
+]

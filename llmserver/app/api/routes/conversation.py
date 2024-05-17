@@ -6,7 +6,7 @@ from fastapi import APIRouter, Form
 from app.utils.twilio import send_sms
 from app.utils.mongodb import fetch_document, update_document, delete_document
 
-from app.langchain.main import langgraph_app
+from app.langchain.langgraph_main import langgraph_app
 
 
 router = APIRouter()

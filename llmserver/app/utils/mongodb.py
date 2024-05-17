@@ -9,9 +9,11 @@ from pymongo import ReturnDocument
 
 from app.utils.default_topics import DEFAULT_TOPICS
 
+from app.langchain.states.document_state import DocumentState
+
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
-def fetch_document(phone_number: str) -> dict:
+def fetch_document(phone_number: str) -> DocumentState:
     client = MongoClient(uri, server_api=ServerApi('1'))
 
     try:
@@ -24,7 +26,7 @@ def fetch_document(phone_number: str) -> dict:
                 "created_at": datetime.now().isoformat(),
                 "updated_at": datetime.now().isoformat(),
                 "user_info": {"age": "30"},
-                "messages": [], 
+                "messages": [{'id': ObjectId(), 'role': 'ai', 'content': "Hey, how are you doing today", 'created_at': '2024-05-15T19:27:53.677708'}], 
                 "topics": [*DEFAULT_TOPICS],
                 "ephemeral": {
                     "current_topic_idx": 0,
