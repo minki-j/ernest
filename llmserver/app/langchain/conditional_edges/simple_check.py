@@ -2,6 +2,13 @@ from typing import Literal
 
 from app.langchain.common import Documents
 
+def is_start_of_conversation(Documents: Documents):
+    print("==>> is_start_of_conversation")
+
+    if len(Documents["review"]["messages"]) < 2:
+        return "generate_reply"
+    else:
+        return "decide_next_step"
 
 def decide_to_pick_new_question(
     Documents: Documents,
