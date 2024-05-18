@@ -2,6 +2,7 @@ from langgraph.graph import END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
 
 from app.langchain.common import Documents
+from app.schemas.schemas import State
 
 from app.langchain.conditional_edges.pick_by_llm import is_reply_A_to_Q
 from app.langchain.conditional_edges.simple_check import is_start_of_conversation
@@ -24,7 +25,7 @@ passthrough_node = RunnablePassthrough()
 # todo: discard previous answer when asked
 # todo: add local llama3 model
 
-graph = StateGraph(Documents)
+graph = StateGraph({"documents": Documents()})
 
 graph.add_node("start", passthrough_node)
 graph.add_conditional_edges("start", is_start_of_conversation)

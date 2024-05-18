@@ -1,21 +1,25 @@
 from typing import Literal
 
 from app.langchain.common import Documents
+from app.schemas.schemas import State
 
-def is_start_of_conversation(Documents: Documents):
+
+def is_start_of_conversation(state: dict[str, Documents]):
     print("==>> is_start_of_conversation")
+    documents = state["documents"]
 
-    if len(Documents["review"]["messages"]) < 2:
+    if len(documents.review.messages) < 2:
         return "generate_reply"
     else:
         return "decide_next_step"
 
+
 def decide_to_pick_new_question(
-    Documents: Documents,
+    documents: dict[str, Documents],
 ) -> Literal["generate_answer_with_new_msg", "decide_next_question"]:
     print("==>> decide_to_pick_new_question")
     # becareful to not use boolean comparison here since index 0 is False
-    if Documents["ephemeral"]["relevant_question_idx"] is None:
+    if documents["ephemeral"]["relevant_question_idx"] is None:
         print("-> decide_next_question")
         return "decide_next_question"
     else:

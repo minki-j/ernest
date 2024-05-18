@@ -3,7 +3,7 @@ from bson.objectid import ObjectId
 
 from fastapi import APIRouter, Form
 
-from app.utils.mongodb import fetch_documents, update_document, delete_document
+from app.utils.mongodb import fetch_document, update_document, delete_document
 
 from app.langchain.langgraph_main import langgraph_app
 from app.schemas.schemas import Message, Role
@@ -21,7 +21,6 @@ def root():
 @router.post("/chat")
 def reply_to_message(
     user_id: str = Form(...),
-    vendor_id: str = Form(...),
     review_id: str = Form(...),
     user_msg: str = Form(...),
     test: str = Form("false"),
@@ -33,10 +32,9 @@ def reply_to_message(
     if reset:
         delete_document(review_id)
 
-    documents: Documents = fetch_documents(review_id, user_id, vendor_id)
-    print(documents)
-    print(documents.review)    
-    print(type(documents.review))
+    documents: Documents = fetch_document(review_id, user_id)
+    print(documents.review.messages)
+    print(documents.review.messages[0].content)
 
     documents.add(
         Message(
@@ -45,15 +43,13 @@ def reply_to_message(
         )
     )
 
-    documents = langgraph_app.invoke(documents)
+    documents = langgraph_app.invoke({"documents": documents})["documents"]
 
-    was_update_successful = update_document(
-        review_id, user_id, vendor_id, documents
-    )
+    was_update_successful = update_document(documents)
 
     if not was_update_successful:
         return {"message": "updating MongoDB failed"}
 
-    reply = documents["state"].get("reply_message", "No reply message found")
+    reply = documents.state.reply_message
 
     return {"message": reply}

@@ -14,7 +14,7 @@ from app.schemas.schemas import Review, User, Vendor, State
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
-def fetch_documents(review_id: str, user_id: str, vendor_id: str) -> Documents:
+def fetch_document(review_id: str, user_id: str) -> Documents:
     client = MongoClient(uri, server_api=ServerApi('1'))
 
     db = client.get_database('ernest')
@@ -22,55 +22,62 @@ def fetch_documents(review_id: str, user_id: str, vendor_id: str) -> Documents:
     user_collection = db.get_collection('user')
     user = user_collection.find_one_and_update(
             {"_id": user_id},
-            {"$setOnInsert": vars(User())}, 
+            {"$setOnInsert": User().to_dict()}, 
             upsert=True, 
             return_document=ReturnDocument.AFTER
         )
-    if not user:
+    if user is None:
         raise ValueError(f"User with id {user_id} not found")
     
-    vendor_collection: Vendor = db.get_collection('vendor')
-    vendor = vendor_collection.find_one_and_update(
-            {"_id": vendor_id},
-            {"$setOnInsert": vars(Vendor())}, 
-            upsert=True, 
-            return_document=ReturnDocument.AFTER
-        )
-    if not vendor:
-        raise ValueError(f"Vendor with id {vendor_id} not found")
-
     review_collection: Review = db.get_collection('review')
     review = review_collection.find_one_and_update(
         {"_id": review_id},
-        {"$setOnInsert": vars(Review(user_id=user_id, vendor_id=vendor_id))},
+        {"$setOnInsert": Review(user_id=user_id).to_dict()},
         upsert=True,
         return_document=ReturnDocument.AFTER
     )
-    
+    if review is None:
+        raise ValueError(f"Review with id {review_id} not found")
+
+    vendor_id = review.get("vendor_id", ObjectId())
+    vendor_collection: Vendor = db.get_collection('vendor')
+    vendor = vendor_collection.find_one_and_update(
+            {"_id": vendor_id},
+            {"$setOnInsert": Vendor().to_dict()}, 
+            upsert=True, 
+            return_document=ReturnDocument.AFTER
+        )
+    if vendor is None:
+        raise ValueError(f"Vendor with id {vendor_id} not found")
+
     return Documents(
         review=Review(**review),
         user=User(**user),
         vendor=Vendor(**vendor),
-        state=State(**review["state"])
+        state=State()
     )
 
-def update_document(review_id: str, user_id:str, vendor_id:str, document: dict) -> bool:
+def update_document(documents: Documents) -> bool:
     client = MongoClient(uri, server_api=ServerApi('1'))
+
+    user_id = documents.user._id
+    vendor_id = documents.vendor._id
+    review_id = documents.review._id
 
     db = client.get_database('ernest')
 
     user_collection= db.get_collection('user')
-    result = user_collection.update_one({"_id": user_id}, {"$set": document["user"]})
+    result = user_collection.update_one({"_id": user_id}, {"$set": documents.user.to_dict()})
     if not result:
         raise ValueError(f"User with id {user_id} update failed")
     
     vendor_collection= db.get_collection('vendor')
-    result = vendor_collection.update_one({"_id": vendor_id}, {"$set": document["vendor"]})
+    result = vendor_collection.update_one({"_id": vendor_id}, {"$set": documents.vendor.to_dict()})
     if not result:
         raise ValueError(f"Vendor with id {vendor_id} update failed")
 
     review_collection= db.get_collection('review')
-    result = review_collection.update_one({"_id": review_id}, {"$set": document["review"]})
+    result = review_collection.update_one({"_id": review_id}, {"$set": documents.review.to_dict()})
     if not result:
         raise ValueError(f"Review with id {review_id} update failed")
 
