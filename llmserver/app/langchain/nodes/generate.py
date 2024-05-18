@@ -15,6 +15,61 @@ from app.langchain.common import llm, chat_model, output_parser
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 
+def generate_reply(state: dict[str, Documents]):
+    print("==>> generate_reply")
+    documents = state["documents"]
+
+    # system_message = "reply to the user. response the last message of the user and ask the next question naturally. the next question is the following: {next_question}"
+
+    # messages = messages_to_chatPromptTemplate(documents["messages"][-6:])
+
+    # prompt = ChatPromptTemplate.from_messages(
+    #     [
+    #         ("system", system_message),
+    #         *messages,
+    #     ]
+    # )
+
+    # chain = prompt | chat_model | output_parser
+    # reply = chain.invoke(
+    #     {
+    #         "next_question": documents["ephemeral"]["next_question"],
+    #     }
+    # )
+
+    # documents["ephemeral"]["reply_message"] = reply
+    # message_id = ObjectId()
+    # documents["messages"].append(
+    #     {
+    #         "id": message_id,
+    #         "role": "ai",
+    #         "content": reply,
+    #         "created_at": datetime.now().isoformat(),
+    #     }
+    # )
+
+    # # update the reference_message_ids of the relevant question
+    # # first check if there is a next question
+    # relevant_question_idx = documents["ephemeral"].get("next_question_idx", None)
+
+    # # if not found, check the relevant question
+    # if relevant_question_idx is None:
+    #     relevant_question_idx = documents["ephemeral"].get(
+    #         "relevant_question_idx", None
+    #     )
+
+    # if relevant_question_idx is not None:
+    #     documents["topics"][current_topic_idx]["questions"][
+    #         relevant_question_idx
+    #     ].setdefault("reference_message_ids", []).append(message_id)
+
+    return {"documents": documents}
+
+
+
+
+
+
 class EnoughnessScore(BaseModel):
     """Get the enoughness score of the answer to the question"""
 
@@ -151,70 +206,6 @@ next_question:
     print(f"next_question: {next_question}")
 
     Documents["ephemeral"]["next_question"] = next_question
-
-    return Documents
-
-
-def generate_reply(Documents: Documents):
-    print("==>> generate_reply")
-
-    current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
-    if current_topic_idx == -1:
-        reply = "All of the survey questions are answered. Thank you for your time. Have a great day!"
-        Documents["ephemeral"]["reply_message"] = reply
-        Documents["messages"].append(
-            {
-                "id": ObjectId(),
-                "role": "ai",
-                "content": reply,
-                "created_at": datetime.now().isoformat(),
-            }
-        )
-        return Documents
-
-    system_message = "reply to the user. response the last message of the user and ask the next question naturally. the next question is the following: {next_question}"
-
-    messages = messages_to_chatPromptTemplate(Documents["messages"][-6:])
-
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            ("system", system_message),
-            *messages,
-        ]
-    )
-
-    chain = prompt | chat_model | output_parser
-    reply = chain.invoke(
-        {
-            "next_question": Documents["ephemeral"]["next_question"],
-        }
-    )
-
-    Documents["ephemeral"]["reply_message"] = reply
-    message_id = ObjectId()
-    Documents["messages"].append(
-        {
-            "id": message_id,
-            "role": "ai",
-            "content": reply,
-            "created_at": datetime.now().isoformat(),
-        }
-    )
-
-    # update the reference_message_ids of the relevant question
-    # first check if there is a next question
-    relevant_question_idx = Documents["ephemeral"].get("next_question_idx", None)
-
-    # if not found, check the relevant question
-    if relevant_question_idx is None:
-        relevant_question_idx = Documents["ephemeral"].get(
-            "relevant_question_idx", None
-        )
-
-    if relevant_question_idx is not None:
-        Documents["topics"][current_topic_idx]["questions"][relevant_question_idx].setdefault(
-            "reference_message_ids", []
-        ).append(message_id)
 
     return Documents
 

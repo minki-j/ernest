@@ -36,7 +36,7 @@ class Chatbot(dspy.Module):
 
         print("Class Initialized: Chatbot")
 
-    def forward(self, document):
+    def forward(self, documents):
         '''
         Flow engineering
         1. if there is no previous conversation or no relevant question
@@ -49,7 +49,7 @@ class Chatbot(dspy.Module):
         '''
 
         id_of_last_bot_message = None
-        for msg in reversed(document["messages"]):
+        for msg in reversed(documents["messages"]):
             if msg["role"] == "ai":
                 id_of_last_bot_message = msg["id"]
                 break
@@ -57,7 +57,7 @@ class Chatbot(dspy.Module):
         relevant_question = None
         relevant_question_idx = None
         if id_of_last_bot_message:
-            for idx, question in enumerate(document["questions"]):
+            for idx, question in enumerate(documents["questions"]):
                 if id_of_last_bot_message in question["reference_message_ids"]:
                     relevant_question = question
                     relevant_question_idx = idx
@@ -66,8 +66,8 @@ class Chatbot(dspy.Module):
         ask_other_question = True
         if relevant_question:
             # update the answer with the user's last message
-            updated_answer = self.update_answer(relevant_question, document["messages"][-1]["content"])
-            for question in document["questions"]:
+            updated_answer = self.update_answer(relevant_question, documents["messages"][-1]["content"])
+            for question in documents["questions"]:
                 if question["content"] == relevant_question["content"]:
                     relevant_question_idx = idx
                     break
@@ -81,9 +81,9 @@ class Chatbot(dspy.Module):
             )
             print("enoughness_score: ", enoughness_score)
 
-            # update document
-            document["questions"][relevant_question_idx]["answer"] = updated_answer
-            document["questions"][relevant_question_idx]["enough"] = enoughness_score
+            # update documents
+            documents["questions"][relevant_question_idx]["answer"] = updated_answer
+            documents["questions"][relevant_question_idx]["enough"] = enoughness_score
 
             if enoughness_score < self.enoughness_score_threshold:
                 ask_other_question = False
@@ -92,29 +92,29 @@ class Chatbot(dspy.Module):
         next_question = None
         if ask_other_question:
             unasked_questions = []
-            for question in document["questions"]:
+            for question in documents["questions"]:
                 if question["enough"] < self.enoughness_score_threshold:
                     unasked_questions.append(question["content"])
             next_question = self.choose_next_question(
-                recent_messages=json_encoder.encode(document["messages"][-4:]),
+                recent_messages=json_encoder.encode(documents["messages"][-4:]),
                 options=" / ".join(unasked_questions),
             ).next_question
 
             pred = self.generate_chat_reply(
-                context=json_encoder.encode(document["user_info"]),
-                conversation=json_encoder.encode(document["messages"][-4:]),
+                context=json_encoder.encode(documents["user_info"]),
+                conversation=json_encoder.encode(documents["messages"][-4:]),
                 instruction="first response to the user's last message and ask a question about the following: " + next_question,
             )
         else:
             pred = self.generate_chat_reply(
-                context=json_encoder.encode(document["user_info"]),
-                conversation=json_encoder.encode(document["messages"][-4:]),
+                context=json_encoder.encode(documents["user_info"]),
+                conversation=json_encoder.encode(documents["messages"][-4:]),
                 instruction="The current answer is not enough. Please ask more questions about the current topic.",
             )
 
-        # update document / add bot's reply
+        # update documents / add bot's reply
         bot_reply_id = ObjectId()
-        document["messages"].append(
+        documents["messages"].append(
             {
                 "id": bot_reply_id,
                 "role": "ai",
@@ -125,17 +125,17 @@ class Chatbot(dspy.Module):
 
         # if the bot is asking a next question, change the relevant question id
         if next_question:
-            for idx, question in enumerate(document["questions"]):
+            for idx, question in enumerate(documents["questions"]):
                 if question["content"].strip() == next_question.strip():
                     relevant_question_idx = idx
                     break
 
-        # update document / add reference_message_ids
-        document["questions"][relevant_question_idx]["reference_message_ids"].append(bot_reply_id)
+        # update documents / add reference_message_ids
+        documents["questions"][relevant_question_idx]["reference_message_ids"].append(bot_reply_id)
 
         return dspy.Prediction(
             reply=pred.ai,
-            new_document=document,
+            new_document=documents,
         )
 
     def check_intent(self, message):
