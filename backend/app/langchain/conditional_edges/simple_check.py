@@ -3,15 +3,29 @@ from typing import Literal
 from app.langchain.common import Documents
 from app.schemas.schemas import State
 
-
-def is_start_of_conversation(state: dict[str, Documents]):
-    print("==>> is_start_of_conversation")
+def is_user_name(state: dict[str, Documents]):
+    print("==>> is_user_name")
     documents = state["documents"]
 
-    if len(documents.review.messages) < 2:
-        return "generate_reply"
+    if documents.user.name is None:
+        return "ask_name"
     else:
-        return "decide_next_step"
+        return "greeting"
+
+
+def what_stage_of_chat(state: dict[str, Documents]):
+    print("==>> is_start_of_chat")
+    documents = state["documents"]
+
+    # TODO: change this to LLM call
+    end_conversation = False
+
+    if len(documents.review.messages) == 0:
+        return "start_of_chat"
+    elif end_conversation:
+        return "end_of_chat"
+    else:
+        return "middle_of_chat"
 
 
 def decide_to_pick_new_question(

@@ -1,4 +1,4 @@
-from modal import App, Image
+from modal import App, Image, Volume
 
 app = App("survey_buddy")
 
@@ -16,9 +16,11 @@ image = (
         "langchain",
         "langchain-openai",
         "langchain_anthropic",
-        "langgraph",
+        "langgraph==0.0.50",
         "langchainhub",
         "pygraphviz",
     )
     .run_commands("pip install --upgrade fastapi pydantic")
 )
+
+vol = Volume.from_name("ernest")

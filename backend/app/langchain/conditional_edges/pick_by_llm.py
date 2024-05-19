@@ -17,6 +17,12 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 from enum import Enum
 
+def middle_router(state: dict[str, Documents]):
+    print("==>> middle_router")
+    documents = state["documents"]
+
+    return ["find_relevant_report", "find_to_update"]
+
 
 class Intents(str, Enum):
     """Enumeration for single-label intent classification."""

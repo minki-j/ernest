@@ -1,9 +1,11 @@
 from bson import ObjectId
 from enum import Enum
 from datetime import datetime
+from pydantic import BaseModel
 
-
-class Base:
+# ! Should I change this to pydantic BaseModel?
+# ! Pydantic provides dict() method...
+class Base():
     def __init__(self) -> None:
         pass
 
@@ -13,8 +15,7 @@ class Base:
         primitive_types = (int, str, bool, float, bytes, ObjectId)
 
         for key, value in self.__dict__.items():
-            # try:
-            if isinstance(value, primitive_types):
+            if isinstance(value, primitive_types) or value is None:
                 result_dict[key] = value
             elif isinstance(value, list):
                 if key not in result_dict:
@@ -34,12 +35,6 @@ class Base:
                         result_dict[key][k] = v.to_dict()
             else:
                 result_dict[key] = value.to_dict()
-        # except Exception as e:
-        #     print(f"Exception: {e}")
-        #     print(
-        #         f"value: {value} {type(value)}"
-        #     )
-        #     print("result_dict: ", result_dict)
 
         return result_dict
 
@@ -65,7 +60,9 @@ class Message(Base):
     created_at: str
     deleted: bool
 
-    def __init__(self, **kwargs):
+    def __init__(self, role: Role, content: str, **kwargs):
+        self.role = role
+        self.content = content
         self.created_at = datetime.now().isoformat()
         self.deleted = False
         for key, value in kwargs.items():
@@ -88,7 +85,10 @@ class Payment(Base):
     currency: str
     paid_at: str
 
-    def __init__(self, **kwargs):
+    def __init__(self, item_name: str, amount: float, **kwargs):
+        self.item_name = item_name
+        self.amount = amount
+        self.currency = "CAD"
         self.paid_at = datetime.now().isoformat()
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -104,13 +104,11 @@ class Review(Base):
     created_at: str
     state: State  # we keep the state in the review object
 
-    def __init__(self, **kwargs):
+    def __init__(self, user_id:str, **kwargs):
+        self.user_id = user_id
+        self.vendor_id = None
         self.payment_info = []
-        self.messages = [
-            Message(
-                role=Role.AI, content="Hi my name is Ernest. What's your name?"
-            )
-        ]
+        self.messages = []
         self.reports = []
         self.created_at = datetime.now().isoformat()
         self.state = State()
@@ -136,7 +134,6 @@ class Review(Base):
                 setattr(self, key, value)
 
 
-
 class Bio(Base):
     title: str
     content: str
@@ -144,7 +141,10 @@ class Bio(Base):
         (ObjectId, int)
     ]  # first element is the review id, second element is the message order
 
-    def __init__(self, **kwargs):
+    def __init__(self, title: str, content: str, **kwargs):
+        self.title = title
+        self.content = content
+        self.reference = []
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -160,8 +160,13 @@ class User(Base):
     bio: list[Bio]
 
     def __init__(self, **kwargs):
+        self.name = None
+        self.email = None
+        self.username = None
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
+        self.review_ids = []
+        self.bio = []
         for key, value in kwargs.items():
             if key == "bio":
                 bio = []
@@ -181,7 +186,10 @@ class Vendor(Base):
     review_ids: list[ObjectId]
 
     def __init__(self, **kwargs):
+        self.name = None
+        self.location = None
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
+        self.review_ids = []
         for key, value in kwargs.items():
             setattr(self, key, value)

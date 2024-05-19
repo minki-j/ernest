@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from app.api.main import api_router
-from app.common import app, image
+from app.common import app, image, vol
 
 from modal import asgi_app, Secret
 
@@ -22,8 +22,10 @@ web_app.include_router(api_router)
         Secret.from_name("my-twilio-secret"),
         Secret.from_name("langsmith"),
     ],
+    volumes={"/ernest": vol},
 )
 @asgi_app()
 def fastapi_asgi():
+    import os
     print("Starting FastAPI app")
     return web_app

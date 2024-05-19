@@ -22,9 +22,9 @@ def root():
 def reply_to_message(
     user_id: str = Form(...),
     review_id: str = Form(...),
-    user_msg: str = Form(...),
-    test: str = Form("false"),
-    reset: str = Form("false"),
+    user_msg: str = Form(default=""),
+    test: str = Form(default="false"),
+    reset: str = Form(default="false"),
 ):
     test = test.lower() == "true"
     reset = reset.lower() == "true"
@@ -33,15 +33,14 @@ def reply_to_message(
         delete_document(review_id)
 
     documents: Documents = fetch_document(review_id, user_id)
-    print(documents.review.messages)
-    print(documents.review.messages[0].content)
 
-    documents.add(
-        Message(
-            role=Role.USER,
-            content=user_msg,
+    if user_msg != "":
+        documents.add(
+            Message(
+                role=Role.USER,
+                content=user_msg,
+            )
         )
-    )
 
     documents = langgraph_app.invoke({"documents": documents})["documents"]
 
