@@ -1,0 +1,87 @@
+{
+  "classify_intent": {
+    "lm": null,
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "listen to westbam alumb allergic on google music",
+        "options": "not provided",
+        "intent": "PlayMusic"
+      },
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "add step to me to the 50 cl\u00e1sicos playlist",
+        "options": "not provided",
+        "intent": "AddToPlaylist"
+      },
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "play the song little robin redbreast",
+        "options": "not provided",
+        "intent": "PlayMusic"
+      },
+      {
+        "augmented": true,
+        "context": "not provided",
+        "question": "please add iris dement to my playlist this is selena",
+        "options": "not provided",
+        "intent": "AddToPlaylist"
+      },
+      {
+        "intent": "AddToPlaylist",
+        "question": "add o b mcclinton to my playlist called women of electronic"
+      },
+      {
+        "intent": "Cancellation",
+        "question": "I\u2019m not intrested"
+      },
+      {
+        "intent": "Book Meeting",
+        "question": "schedule a meeting"
+      },
+      {
+        "intent": "SearchScreeningEvent",
+        "question": "please tell me the movie schedules"
+      },
+      {
+        "intent": "BookRestaurant",
+        "question": "i need a restaurant that can seat 3 in cochran that has wifi"
+      },
+      {
+        "intent": "GetWeather",
+        "question": "will it be freezing at 1 am in balko"
+      },
+      {
+        "intent": "SearchScreeningEvent",
+        "question": "where is the closest cinema that features animated movies"
+      },
+      {
+        "intent": "PlayMusic",
+        "question": "play some sixties on netflix"
+      },
+      {
+        "intent": "SearchCreativeWork",
+        "question": "go to attack of the planet smashers"
+      },
+      {
+        "intent": "RateBook",
+        "question": "rate the sacred fire series 5 points"
+      },
+      {
+        "intent": "Cancellation",
+        "question": "cancel this"
+      },
+      {
+        "intent": "RateBook",
+        "question": "rate dead boys a 0"
+      }
+    ],
+    "signature_instructions": "Classify the given input's intent.",
+    "signature_prefix": "Intent:"
+  }
+}
