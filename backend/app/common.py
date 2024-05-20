@@ -19,6 +19,7 @@ image = (
         "langgraph==0.0.50",
         "langchainhub",
         "pygraphviz",
+        "varname==0.13.1",
     )
     .run_commands("pip install --upgrade fastapi pydantic")
 )

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Form
 
 from app.utils.mongodb import fetch_document, update_document, delete_document
 
-from app.langchain.langgraph_main import langgraph_app
+from app.langchain.main_graph import langgraph_app
 from app.schemas.schemas import Message, Role
 from app.langchain.common import Documents
 
@@ -42,6 +42,9 @@ def reply_to_message(
             )
         )
 
+    # TODO: not working with Document class as a state type
+    # print(langgraph_app.get_graph().draw_ascii())
+    
     documents = langgraph_app.invoke({"documents": documents})["documents"]
 
     was_update_successful = update_document(documents)

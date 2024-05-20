@@ -41,9 +41,11 @@ class Base():
 
 class State(Base):
     reply_message: str
+    context: dict
 
     def __init__(self, **kwargs):
         self.reply_message = "No reply provided"
+        self.context = {}
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -157,7 +159,7 @@ class User(Base):
     created_at: str
     updated_at: str
     review_ids: list[ObjectId]
-    bio: list[Bio]
+    bios: list[Bio]
 
     def __init__(self, **kwargs):
         self.name = None
@@ -166,13 +168,13 @@ class User(Base):
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
         self.review_ids = []
-        self.bio = []
+        self.bios = []
         for key, value in kwargs.items():
-            if key == "bio":
-                bio = []
+            if key == "bios":
+                bios = []
                 for item in value:
-                    bio.append(Bio(**item))
-                setattr(self, key, bio)
+                    bios.append(Bio(**item))
+                setattr(self, key, bios)
             else:
                 setattr(self, key, value)
 
