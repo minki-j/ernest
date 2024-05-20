@@ -14,7 +14,7 @@ from app.langchain.common import llm, chat_model, output_parser
 
 from langchain_core.pydantic_v1 import BaseModel, Field
 
-def end_conversation(state: dict[str, Documents]):
+def end_of_chat(state: dict[str, Documents]):
     print("==>> end_conversation")
     documents = state["documents"]
 
