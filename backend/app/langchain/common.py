@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Annotated
 
 from app.schemas.schemas import (
     Review,
@@ -21,6 +21,7 @@ llm = OpenAI(model="gpt-3.5-turbo")
 # chat_model = ChatAnthropic(model="claude-3-haiku-20240307")
 # llm = Anthropic(model="claude-3-haiku-20240307")
 
+
 class Documents():
     review: Review 
     user: User 
@@ -32,13 +33,13 @@ class Documents():
             setattr(self, key, value)
 
     def to_dict(self):
-        return {
-            "review": self.review.to_dict(),
-            "user": self.user.to_dict(),
-            "vendor": self.vendor.to_dict(),
-            "state": self.state.to_dict(),
-        }
-    
+        result = {}
+        for attr in ['review', 'user', 'vendor', 'state']:
+            value = getattr(self, attr, None)
+            if value is not None and hasattr(value, 'to_dict'):
+                result[attr] = value.to_dict()
+        return result
+
     def add(self, value):
         if isinstance(value, State):
             self.state = value
@@ -66,3 +67,9 @@ class Documents():
             return
         else:
             raise ValueError(f"Unsupported type {type(value)}")
+
+
+class StateType(TypedDict):
+    documents: Annotated[
+        Documents, lambda _, new: new
+    ]  # replace the new doc with the old doc
