@@ -42,10 +42,13 @@ class Base():
 class State(Base):
     reply_message: str
     context: dict
+    criticizm: dict
+    instruction: str
 
     def __init__(self, **kwargs):
         self.reply_message = "No reply provided"
         self.context = {}
+        self.criticizm = None
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -63,7 +66,7 @@ class Message(Base):
     deleted: bool
 
     def __init__(self, role: Role, content: str, **kwargs):
-        self.role = role
+        self.role = Role(role)
         self.content = content
         self.created_at = datetime.now().isoformat()
         self.deleted = False
