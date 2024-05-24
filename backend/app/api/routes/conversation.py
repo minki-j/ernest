@@ -7,7 +7,7 @@ from app.utils.mongodb import fetch_document, update_document, delete_document
 
 from app.langchain.main_graph import langgraph_app
 from app.schemas.schemas import Message, Role
-from app.langchain.common import Documents
+from app.langchain.schema import Documents
 
 
 router = APIRouter()
@@ -55,6 +55,10 @@ def reply_to_message(
     if not was_update_successful:
         return {"message": "updating MongoDB failed"}
 
-    reply = documents.state.reply_message
+    reply = (
+        documents.state.reply_message
+        if hasattr(documents.state, "reply_message")
+        else "No reply provided"
+    )
 
     return {"message": reply}

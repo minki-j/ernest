@@ -8,9 +8,9 @@ from pymongo.server_api import ServerApi
 from pymongo import ReturnDocument
 
 
-from app.langchain.common import Documents
+from app.langchain.schema import Documents
 
-from app.schemas.schemas import Review, User, Vendor, State
+from app.schemas.schemas import Review, User, Vendor, State, ParallelState
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
@@ -56,7 +56,8 @@ def fetch_document(review_id: str, user_id: str) -> Documents:
         review=Review(**review),
         user=User(**user),
         vendor=Vendor(**vendor),
-        state=State()
+        state=State(),
+        parallel_state=ParallelState()
     )
 
 def update_document(documents: Documents) -> bool:

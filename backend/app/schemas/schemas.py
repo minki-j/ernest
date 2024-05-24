@@ -2,9 +2,12 @@ from bson import ObjectId
 from enum import Enum
 from datetime import datetime
 from pydantic import BaseModel
+from typing import Any
 
-# ! Should I change this to pydantic BaseModel?
-# ! Pydantic provides dict() method...
+
+# ? Should I change this to pydantic BaseModel?
+# ? Pydantic provides built-in to_dict() method
+# ? But Pydantic requires an adjustment for MongoDB ObjectId
 class Base():
     def __init__(self) -> None:
         pass
@@ -38,17 +41,28 @@ class Base():
 
         return result_dict
 
+class ParallelState(Base):
+    pending_items: list
+    def __init__(self):
+        self.pending_items = []
+
+class StateItem():
+    attribute: str
+    key: str
+    value: Any
+
+    def __init__(self, attribute: str, key: str, value: Any):
+        self.attribute = attribute
+        self.key = key
+        self.value = value
 
 class State(Base):
-    reply_message: str
-    context: dict
-    criticizm: dict
-    instruction: str
+    reply_message: StateItem
+    context: StateItem
+    criticizm: StateItem
+    instruction: StateItem
 
     def __init__(self, **kwargs):
-        self.reply_message = "No reply provided"
-        self.context = {}
-        self.criticizm = None
         for key, value in kwargs.items():
             setattr(self, key, value)
 
