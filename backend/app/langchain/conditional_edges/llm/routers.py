@@ -39,7 +39,6 @@ def moc_router(state: dict[str, Documents]):
             return n(gather_context)
         else:
             return n(plan_instruction)
-    
 
     # Decide whether the planed instruction is good enough. If not, gather more context and plan again.
     prompt = PromptTemplate.from_template(
@@ -54,7 +53,9 @@ planned instruction for the next reply: {planned_instruction}"""
 
     is_planned_enough = chain.invoke({"conversation": messages_to_string(documents.review.messages[-10:]), "planned_instruction": documents.state.instruction})
 
-    if is_planned_enough:
+    print('    is_planned_enough:', is_planned_enough.answer)
+
+    if is_planned_enough.answer:
         return "end_router"
     else:
         return n(gather_context)

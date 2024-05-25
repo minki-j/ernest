@@ -18,7 +18,7 @@ def gather_user_info(state: dict[str, Documents]):
         user_info += f"{bio.title}: {bio.content}\n"
 
     documents.parallel_state.pending_items.append(
-        StateItem(attribute=["context"], key=n(user_info), value=user_info)
+        StateItem(attribute="context", key=n(user_info), value=user_info)
     )
     print("    : added user info to context")
 
@@ -31,10 +31,10 @@ def gather_vendor_info(state: dict[str, Documents]):
 
     vendor = documents.vendor
 
-    vendor_info = f"Name: {vendor.name}\nLocation: {vendor.location}\nCreated at: {vendor.created_at}\nUpdated at: {vendor.updated_at}\n"
+    vendor_info = f"Name: {vendor.name}\nLocation: {vendor.location}"
 
     documents.parallel_state.pending_items.append(
-        StateItem(attribute=["context"], key=n(vendor_info), value=vendor_info)
+        StateItem(attribute="context", key=n(vendor_info), value=vendor_info)
     )
     print("    : added vendor info to context")
 

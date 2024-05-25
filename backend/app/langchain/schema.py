@@ -37,12 +37,9 @@ class Documents():
             self.state = value
             return
         elif isinstance(value, StateItem):
-            depth = len(value.attribute)
-            for i in range(depth):
-                if not hasattr(self.state, value.attribute[i]):
-                    setattr(self.state, value.attribute[i], {})
+            if not hasattr(self.state, value.attribute):
+                setattr(self.state, value.attribute, {})
             getattr(self.state, value.attribute)[value.key] = value.value
-            return
         elif isinstance(value, Message):
             self.review.messages.append(value)
             return
