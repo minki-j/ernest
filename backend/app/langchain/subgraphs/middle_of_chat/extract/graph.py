@@ -27,7 +27,6 @@ g.add_node(n(extract_vendor_info_from_reply), extract_vendor_info_from_reply)
 g.add_edge(n(extract_user_info_from_reply), "rendezvous")
 g.add_edge(n(extract_vendor_info_from_reply), "rendezvous")
 
-
 g.add_node("rendezvous", RunnablePassthrough())
 g.add_edge("rendezvous", END)
 
