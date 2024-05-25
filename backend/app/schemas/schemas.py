@@ -2,7 +2,7 @@ from bson import ObjectId
 from enum import Enum
 from datetime import datetime
 from pydantic import BaseModel
-from typing import Any
+from typing import Any, List
 
 
 # ? Should I change this to pydantic BaseModel?
@@ -61,6 +61,8 @@ class State(Base):
     context: StateItem
     criticizm: StateItem
     instruction: StateItem
+    missing_details: List[str]
+    stories: List[str]
 
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -121,7 +123,8 @@ class Review(Base):
     messages: list[Message]
     reports: list[Report]
     created_at: str
-    state: State  # we keep the state in the review object
+    state: State  
+    story: str
 
     def __init__(self, user_id:str, **kwargs):
         self.user_id = user_id
@@ -131,6 +134,7 @@ class Review(Base):
         self.reports = []
         self.created_at = datetime.now().isoformat()
         self.state = State()
+        self.story = ""
         for key, value in kwargs.items():
             if key == "messages":
                 messages = []

@@ -8,10 +8,10 @@ from app.langchain.utils.converters import to_path_map
 
 from app.langchain.nodes.llm.generate import generate_reply
 from app.langchain.subgraphs.middle_of_chat.gather_context.graph import gather_context
-from app.langchain.nodes.llm.criticize import reflection
-from app.langchain.nodes.llm.plan import plan_instruction
-from app.langchain.conditional_edges.llm.routers import moc_router
 from app.langchain.subgraphs.middle_of_chat.extract.graph import extract
+from app.langchain.nodes.llm.find import find_missing_details
+from app.langchain.nodes.llm.generate import update_story
+
 
 g = StateGraph(StateType)
 g.set_entry_point("entry")
@@ -20,40 +20,16 @@ g.add_node("entry", RunnablePassthrough())
 g.add_edge("entry", n(extract))
 
 g.add_node(n(extract), extract)
-g.add_edge(n(extract), n(moc_router))
-
-g.add_node(n(moc_router), RunnablePassthrough())
-g.add_conditional_edges(
-    n(moc_router),
-    moc_router,
-    to_path_map(
-        [
-            n(gather_context),
-            n(plan_instruction),
-            "end_router",
-        ],
-    ),
-)
+g.add_edge(n(extract), n(gather_context))
 
 g.add_node(n(gather_context), gather_context)
-g.add_edge(n(gather_context), n(plan_instruction))
-g.add_node(n(plan_instruction), plan_instruction)
-g.add_edge(n(plan_instruction), n(moc_router))
+g.add_edge(n(gather_context), n(update_story))
 
-g.add_node("end_router", RunnablePassthrough())
-g.add_edge("end_router", n(reflection))
+g.add_node(n(update_story), update_story)
+g.add_edge(n(update_story), n(find_missing_details))
 
-g.add_node(n(reflection), RunnablePassthrough())
-g.add_conditional_edges(
-    n(reflection),
-    reflection,
-    to_path_map(
-        [
-            n(moc_router),  # loop back
-            n(generate_reply),  # exit
-        ]
-    ),
-)
+g.add_node(n(find_missing_details), find_missing_details)
+g.add_edge(n(find_missing_details), n(generate_reply))
 
 g.add_node(n(generate_reply), generate_reply)
 g.add_edge(n(generate_reply), END)

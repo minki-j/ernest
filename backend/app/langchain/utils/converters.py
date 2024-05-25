@@ -1,5 +1,6 @@
 from app.schemas.schemas import Message
 
+
 def to_path_map(node_names):
     dict = {}
     for name in node_names:
@@ -22,5 +23,7 @@ def to_role_content_tuples(messages: list[Message]):
     return result
 
 
-def messages_to_string(messages: list[Message]):
-    return "\n".join([f"{msg.role.value}: {msg.content}" for msg in messages])
+def messages_to_string(
+    messages: list[Message], ai_role: str = "ai", user_role: str = "user"
+):
+    return "\n".join([f"({ai_role if msg.role.value == "ai" else user_role}) {msg.content}" for msg in messages])
