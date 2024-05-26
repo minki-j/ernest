@@ -75,18 +75,24 @@ updated story:
 def generate_reply(state: dict[str, Documents]):
     print("==>> generate_reply")
     documents = state["documents"]
-    print("    : missing_details ->", documents.state.missing_details[-1])
 
     messages = to_role_content_tuples(documents.review.messages[-8:])
     prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
-"""
+                """
 You are a journalist at a famous magazine with 40+ years of experience. Your main area of topic is about how customers experienced services, products, and businesses. Your stories are always well-researched and well-written, which a lot of readers appreciate. 
-In this specific task, you are going to reply to the customer that your are interviewing at the moment. Your assistant already did some research and found some missing details. You need to ask the customer about these missing details.
-The missing detail is the following: {missing_detail}
-Keep in mind that the way you reply to the customer determines how much information you can get from them. For example, validating the customer's feelings can help you get more information from them. On the other hand, being too verbose can distract the customer away from their own feelings. You are a seasoned journalist and you know what is the best way to respond to the interviewee by instinct.
+In this specific task, you are going to reply to the customer that your are interviewing at the moment through text messages. Your assistant already did some research and found some missing details. You need to ask the customer about these missing details.
+Keep in mind that the way you reply to the customer determines how much information you can get from them. 
+For example, validating the customer's feelings can help you get more information from them. On the other hand, being too verbose can distract the customer away from their own feelings. 
+Using a proper emoji can also help you to express your feelings and make the conversation more engaging.
+Using a colloquial language can make the customer more comfortable and open up more to you.
+You are a seasoned journalist and you know what is the best way to respond to the interviewee by instinct. 
+The missing detail you need to ask: {missing_detail}
+
+DO NOT FORGET that you MUST USE EMOJIES and COLLOQUIAL LANGUAGE!!
+DO NOT FORGET that you MUST USE EMOJIES and COLLOQUIAL LANGUAGE!!
 """,
             ),
             *messages,

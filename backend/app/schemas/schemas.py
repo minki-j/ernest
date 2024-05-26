@@ -175,6 +175,7 @@ class Bio(Base):
 class User(Base):
     _id: ObjectId
     name: str
+    pronouns: str
     email: str
     username: str
     created_at: str
@@ -184,6 +185,7 @@ class User(Base):
 
     def __init__(self, **kwargs):
         self.name = None
+        self.pronouns = None
         self.email = None
         self.username = None
         self.created_at = datetime.now().isoformat()
