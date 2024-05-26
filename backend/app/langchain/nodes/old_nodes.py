@@ -9,7 +9,7 @@ from app.langchain.schema import Documents
 
 
 def decide_next_question(Documents: Documents):
-    print("==>> decide_next_question")
+    print("\n==>> decide_next_question")
     current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
 
     unasked_questions = []
@@ -103,7 +103,7 @@ next_question:
 
 
 def decide_whether_to_move_to_next_topic(Documents: Documents):
-    print("==>> decide_whether_to_move_to_next_topic")
+    print("\n==>> decide_whether_to_move_to_next_topic")
     current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
 
     unasked_questions = []
@@ -132,7 +132,7 @@ class EnoughnessScore(BaseModel):
 
 
 def evaluate_enoughness_score(Documents: Documents):
-    print("==>> generate_enoughness_score")
+    print("\n==>> generate_enoughness_score")
 
     relevant_question_idx = Documents["ephemeral"]["relevant_question_idx"]
     current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
@@ -185,7 +185,7 @@ def generate_answer_with_new_msg(Documents: Documents):
     if Documents["messages"][-1]["content"].lower() == "pass":
         return Documents
 
-    print("==>> generate_answer_with_new_msg")
+    print("\n==>> generate_answer_with_new_msg")
     current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
     relevant_question_idx = Documents["ephemeral"]["relevant_question_idx"]
     question_content = Documents["topics"][current_topic_idx]["questions"][
@@ -265,7 +265,7 @@ next_question:
 
 
 def generate_reply_for_not_A(Documents: Documents):
-    print("==>> generate_reply_for_not_A")
+    print("\n==>> generate_reply_for_not_A")
 
     reply = "Answering the questions not related to survey will be added soon, but not available at the moment. Thank you for your patience. Have a great day!"
     Documents["ephemeral"]["reply_message"] = reply

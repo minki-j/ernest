@@ -11,6 +11,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 from app.langchain.utils.converters import messages_to_string
 
+
 class UpdateStory(BaseModel):
     """A story that is being updated with a reply from a customer."""
 
@@ -18,7 +19,7 @@ class UpdateStory(BaseModel):
 
 
 def update_story(state: dict[str, Documents]):
-    print("==>> update_story")
+    print("\n==>> update_story")
     documents = state["documents"]
 
     prompt = PromptTemplate.from_template(
@@ -72,8 +73,15 @@ updated story:
     return {"documents": documents}
 
 
+class Reply(BaseModel):
+    """A reply from a journalist to a customer."""
+
+    reaction: str = Field(description="The reaction part of the reply")
+    question: str = Field(description="The question part of the reply")
+
+
 def generate_reply(state: dict[str, Documents]):
-    print("==>> generate_reply")
+    print("\n==>> generate_reply")
     documents = state["documents"]
 
     messages = to_role_content_tuples(documents.review.messages[-8:])
@@ -99,12 +107,16 @@ DO NOT FORGET that you MUST USE EMOJIES and COLLOQUIAL LANGUAGE!!
         ]
     )
 
-    chain = prompt | chat_model_openai_4o | output_parser
+    chain = prompt | chat_model_openai_4o.with_structured_output(Reply)
 
-    documents.state.reply_message = chain.invoke(
+    candidate_reply_message = chain.invoke(
         {
-            "missing_detail": documents.state.missing_details[-1],
+            "missing_detail": documents.state.chosen_missing_detail,
         }
     )
+
+    print("    : reaction ->", candidate_reply_message.reaction)
+    print("    : question ->", candidate_reply_message.question)
+    documents.state.candidate_reply_message = candidate_reply_message
 
     return {"documents": documents}

@@ -27,7 +27,7 @@ class Name(BaseModel):
 
 
 def update_user_name(state: dict[str, Documents]):
-    print("==>> update_user_name")
+    print("\n==>> update_user_name")
     documents = state["documents"]
 
     structured_chat_model = chat_model.with_structured_output(Name)

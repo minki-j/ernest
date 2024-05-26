@@ -181,7 +181,7 @@ def is_reply_A_to_Q(Documents: Documents):
 def decide_to_pick_new_question(
     documents: dict[str, Documents],
 ) -> Literal["generate_answer_with_new_msg", "decide_next_question"]:
-    print("==>> decide_to_pick_new_question")
+    print("\n==>> decide_to_pick_new_question")
     # becareful to not use boolean comparison here since index 0 is False
     if documents["ephemeral"]["relevant_question_idx"] is None:
         print("-> decide_next_question")
@@ -194,7 +194,7 @@ def decide_to_pick_new_question(
 def decide_enoughness_threshold(
     Documents: Documents,
 ) -> Literal["decide_next_question", "generate_new_q_for_current_topic"]:
-    print("==>> decide_enoughness_threshold")
+    print("\n==>> decide_enoughness_threshold")
     current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
     relevant_question_idx = Documents["ephemeral"]["relevant_question_idx"]
     enoughness_score = Documents["topics"][current_topic_idx]["questions"][
@@ -208,7 +208,7 @@ def decide_enoughness_threshold(
 
 
 def is_next_Q(Documents: Documents) -> Literal["generate_answer_with_new_msg", "decide_next_question"]:
-    print("==>> is_next_Q")
+    print("\n==>> is_next_Q")
 
     current_topic_idx = Documents["ephemeral"]["current_topic_idx"]
 

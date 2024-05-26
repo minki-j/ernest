@@ -17,7 +17,7 @@ class Extracted(BaseModel):
     content: str = Field(description="A detailed content of the extracted information. Only include what's in the given text")
 
 def extract_user_info_from_reply(state: dict[str, Documents]):
-    print("==>> extract_user_info_from_reply")
+    print("\n==>> extract_user_info_from_reply")
     documents = state["documents"]
 
     reply = documents.review.messages[-1].content
@@ -61,5 +61,5 @@ user message: {reply}"""
 
 
 def extract_vendor_info_from_reply(state: dict[str, Documents]):
-    print("==>> extract_info_from_vendor_reply")
+    print("\n==>> extract_info_from_vendor_reply")
     documents = state["documents"]

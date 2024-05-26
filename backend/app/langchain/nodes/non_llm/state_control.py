@@ -14,7 +14,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 
 
 def sync_state_and_doc(state: dict[str, Documents]):
-    print("==>> sync_state_and_doc")
+    print("\n==>> sync_state_and_doc")
     documents = state["documents"]
 
     documents.add(

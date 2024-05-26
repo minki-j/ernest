@@ -13,7 +13,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from app.langchain.nodes.llm.generate import generate_reply
 
 def reflection(state: dict[str, Documents]):
-    print("==>> reflection")
+    print("\n==>> reflection")
     documents = state["documents"]
 
     return n(generate_reply)
