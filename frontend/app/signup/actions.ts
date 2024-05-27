@@ -41,6 +41,11 @@ interface Result {
   resultCode: ResultCode
 }
 
+export async function signupWithGoogle(): Promise<Result | undefined> {
+  
+  return 
+}
+
 export async function signup(
   _prevState: Result | undefined,
   formData: FormData

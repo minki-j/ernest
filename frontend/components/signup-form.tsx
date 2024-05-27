@@ -71,6 +71,7 @@ export default function SignupForm() {
           </div>
         </div>
         <LoginButton />
+        <GoogleButton />
       </div>
 
       <Link href="/login" className="flex flex-row gap-1 text-sm text-zinc-400">
@@ -90,6 +91,19 @@ function LoginButton() {
       aria-disabled={pending}
     >
       {pending ? <IconSpinner /> : 'Create account'}
+    </button>
+  )
+}
+
+function GoogleButton() {
+  const { pending } = useFormStatus()
+
+  return (
+    <button
+      className="flex h-10 w-full flex-row items-center justify-center rounded-md bg-zinc-900 p-2 text-sm font-semibold text-zinc-100 hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+      aria-disabled={pending}
+    >
+      {pending ? <IconSpinner /> : 'Sign up with Google'}
     </button>
   )
 }
