@@ -51,5 +51,5 @@ g.add_edge(n(decide_reply_type), END)
 
 middle_of_chat = g.compile()
 
-# with open("middle_of_chat.png", "wb") as f:
+# with open("graph_imgs/middle_of_chat.png", "wb") as f:
 #     f.write(middle_of_chat.get_graph().draw_png())

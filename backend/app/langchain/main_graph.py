@@ -48,5 +48,5 @@ g.add_edge(n(sync_state_and_doc), END)
 langgraph_app = g.compile()
 
 
-# with open("main_graph.png", "wb") as f:
+# with open("graph_imgs/main_graph.png", "wb") as f:
 #     f.write(langgraph_app.get_graph().draw_png())
