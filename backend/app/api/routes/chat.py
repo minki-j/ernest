@@ -15,10 +15,10 @@ router = APIRouter()
 
 @router.get("/")
 def root():
-    return {"message": "/conversation/ route working fine"}
+    return {"message": "/chat route working fine"}
 
 
-@router.post("/chat")
+@router.post("/invoke")
 def reply_to_message(
     user_id: str = Form(...),
     review_id: str = Form(...),
