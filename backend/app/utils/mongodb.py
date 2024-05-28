@@ -50,7 +50,7 @@ def fetch_document(review_id: str, user_id: str) -> Documents:
     if vendor is None:
         raise ValueError(f"Vendor with id {vendor_id} not found")
     
-    print(f"==>> fetch_document ran successfully")
+    print(f"\n==>> fetch_document ran successfully")
 
     return Documents(
         review=Review(**review),
@@ -95,5 +95,5 @@ def delete_document(review_id: str) -> bool:
         {"_id": review_id}
     )
 
-    print(f"==>> delete_document ran successfully")
+    print(f"\n==>> delete_document ran successfully")
     return True

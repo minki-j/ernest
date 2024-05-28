@@ -10,7 +10,7 @@ from app.schemas.schemas import State, Role, Message, StateItem
 
 # add context to the state
 def gather_user_info(state: dict[str, Documents]):
-    print("==>> gather_user_info")
+    print("\n==>> gather_user_info")
     documents = state["documents"]
 
     user_info = ""
@@ -26,7 +26,7 @@ def gather_user_info(state: dict[str, Documents]):
 
 
 def gather_vendor_info(state: dict[str, Documents]):
-    print("==>> gather_vendor_info")
+    print("\n==>> gather_vendor_info")
     documents = state["documents"]
 
     vendor = documents.vendor

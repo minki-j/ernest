@@ -4,7 +4,7 @@ from app.langchain.schema import Documents
 from app.schemas.schemas import State
 
 def is_user_name(state: dict[str, Documents]):
-    print("==>> is_user_name")
+    print("\n==>> is_user_name")
     documents = state["documents"]
 
     if documents.user.name is None:
@@ -14,7 +14,7 @@ def is_user_name(state: dict[str, Documents]):
 
 
 def what_stage_of_chat(state: dict[str, Documents]):
-    print("==>> is_start_of_chat")
+    print("\n==>> is_start_of_chat")
     documents = state["documents"]
 
     # TODO: change this to LLM call

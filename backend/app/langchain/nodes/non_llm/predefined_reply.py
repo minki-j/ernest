@@ -2,7 +2,7 @@ from app.langchain.schema import Documents
 
 
 def generate_last_msg(state: dict[str, Documents]):
-    print("==>> end_conversation")
+    print("\n==>> end_conversation")
     documents = state["documents"]
 
     documents.state.reply_message = "Thank you for your time. Have a great day!"
@@ -11,7 +11,7 @@ def generate_last_msg(state: dict[str, Documents]):
 
 
 def ask_name(state: dict[str, Documents]):
-    print("==>> ask_name")
+    print("\n==>> ask_name")
     documents = state["documents"]
 
     message = "Hi I'm Ernest! What's your name?"
@@ -22,7 +22,7 @@ def ask_name(state: dict[str, Documents]):
 
 
 def greeting(state: dict[str, Documents]):
-    print("==>> greeting")
+    print("\n==>> greeting")
     documents = state["documents"]
 
     first_msg_from_ai = f"Hi {documents.user.name}! What's up?"

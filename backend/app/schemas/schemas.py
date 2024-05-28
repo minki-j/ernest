@@ -1,7 +1,7 @@
 from bson import ObjectId
 from enum import Enum
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Any, List
 
 
@@ -56,8 +56,15 @@ class StateItem():
         self.key = key
         self.value = value
 
+
+class Reply():
+    reaction: str 
+    question: str 
+
+
 class State(Base):
     reply_message: StateItem
+    candidate_reply_message: Reply
     context: StateItem
     criticizm: StateItem
     instruction: StateItem
@@ -175,6 +182,7 @@ class Bio(Base):
 class User(Base):
     _id: ObjectId
     name: str
+    pronouns: str
     email: str
     username: str
     created_at: str
@@ -184,6 +192,7 @@ class User(Base):
 
     def __init__(self, **kwargs):
         self.name = None
+        self.pronouns = None
         self.email = None
         self.username = None
         self.created_at = datetime.now().isoformat()
