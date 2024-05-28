@@ -6,25 +6,37 @@ import { kv } from '@vercel/kv'
 
 import { auth } from '@/auth'
 import { type Chat } from '@/lib/types'
+import clientPromise from '@/lib/mongodb'
+import { Chat } from '@/components/chat'
 
 export async function getChats(userId?: string | null) {
   if (!userId) {
     return []
   }
-
+  
   try {
-    const pipeline = kv.pipeline()
-    const chats: string[] = await kv.zrange(`user:chat:${userId}`, 0, -1, {
-      rev: true
-    })
+    const client = await clientPromise
+    const db = client.db('ernest')
+    const user_collection = db.collection('user')
+    const user = await user_collection.findOne({ userId: userId })
+    // console.log('getChats', user)
+    console.log('getChats', user?.bios[0])
 
-    for (const chat of chats) {
-      pipeline.hgetall(chat)
+    const chat: Chat = {
+      id: '1',
+      title: 'Chat Title',
+      createdAt: new Date(),
+      userId: 'user1',
+      path: '/path/to/chat',
+      messages: [
+        {
+          id: 'msg1',
+          role: 'user',
+          content: 'Hello, world!'
+        }
+      ]
     }
-
-    const results = await pipeline.exec()
-
-    return results as Chat[]
+    return [chat]
   } catch (error) {
     return []
   }

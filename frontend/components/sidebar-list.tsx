@@ -15,6 +15,7 @@ const loadChats = cache(async (userId?: string) => {
 
 export async function SidebarList({ userId }: SidebarListProps) {
   const chats = await loadChats(userId)
+  console.log("SidebarList", chats)
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">

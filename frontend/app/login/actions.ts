@@ -6,9 +6,23 @@ import { AuthError } from 'next-auth'
 import { z } from 'zod'
 import { kv } from '@vercel/kv'
 import { ResultCode } from '@/lib/utils'
+import { auth } from '@/auth'
+import { Session } from '@/lib/types'
+import clientPromise from '../../lib/mongodb'
 
-export async function getUser(email: string) {
-  const user = await kv.hgetall<User>(`user:${email}`)
+export async function getUser() {
+  const session = (await auth()) as Session
+
+  if (!session?.user) {
+    return null
+  }
+
+  // Fetch data from mongodb
+  const client = await clientPromise;
+  const db = client.db('ernest')
+  const user_collection = db.collection('user')
+  const user = await user_collection.findOne({ email: session.user.email })
+
   return user
 }
 
@@ -36,7 +50,7 @@ export async function authenticate(
       })
 
     if (parsedCredentials.success) {
-      await signIn('credentials', {
+      await signIn('google', {
         email,
         password,
         redirect: false
