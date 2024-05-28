@@ -6,38 +6,34 @@ import { kv } from '@vercel/kv'
 
 import { auth } from '@/auth'
 import { type Chat } from '@/lib/types'
-import clientPromise from '@/lib/mongodb'
-import { Chat } from '@/components/chat'
 
 export async function getChats(userId?: string | null) {
+  console.log('getChats')
+
   if (!userId) {
     return []
   }
-  
-  try {
-    const client = await clientPromise
-    const db = client.db('ernest')
-    const user_collection = db.collection('user')
-    const user = await user_collection.findOne({ userId: userId })
-    // console.log('getChats', user)
-    console.log('getChats', user?.bios[0])
 
-    const chat: Chat = {
-      id: '1',
-      title: 'Chat Title',
-      createdAt: new Date(),
-      userId: 'user1',
-      path: '/path/to/chat',
-      messages: [
-        {
-          id: 'msg1',
-          role: 'user',
-          content: 'Hello, world!'
-        }
-      ]
-    }
-    return [chat]
+  const url = process.env['API_URL'] + 'history/getchats'
+  const session = await auth()
+  console.log(session?.user);
+
+  const user = JSON.stringify(session?.user)
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + process.env['API_TOKEN']
+      },
+      body: user
+    }).then(res => res.json())
+
+    console.log('res: ', res)
+    return []
   } catch (error) {
+    console.error('error: ', error)
     return []
   }
 }
