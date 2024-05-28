@@ -1,10 +1,10 @@
 import os 
+import json
 from datetime import datetime
 from typing import List
 from bson.objectid import ObjectId
 
 from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
 from pymongo import ReturnDocument
 
 
@@ -15,7 +15,7 @@ from app.schemas.schemas import Review, User, Vendor, State, ParallelState
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
 def fetch_document(review_id: str, user_id: str) -> Documents:
-    client = MongoClient(uri, server_api=ServerApi('1'))
+    client = MongoClient(uri)
 
     db = client.get_database('ernest')
     
@@ -61,7 +61,7 @@ def fetch_document(review_id: str, user_id: str) -> Documents:
     )
 
 def update_document(documents: Documents) -> bool:
-    client = MongoClient(uri, server_api=ServerApi('1'))
+    client = MongoClient(uri)
 
     user_id = documents.user._id
     vendor_id = documents.vendor._id
@@ -87,7 +87,7 @@ def update_document(documents: Documents) -> bool:
     return True
 
 def delete_document(review_id: str) -> bool:
-    client = MongoClient(uri, server_api=ServerApi('1'))
+    client = MongoClient(uri)
 
     db = client.get_database('ernest')
     review_collection= db.get_collection('review')
@@ -97,3 +97,33 @@ def delete_document(review_id: str) -> bool:
 
     print(f"\n==>> delete_document ran successfully")
     return True
+
+
+def fetch_user(user_id: str, name: str, email: str):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    user_collection = db.get_collection('user')
+    user = user_collection.find_one_and_update(
+            {"_id": user_id},
+            {"$setOnInsert": User(name=name, email=email).to_dict()}, 
+            upsert=True, 
+            return_document=ReturnDocument.AFTER
+        )
+    
+    review_ids = user.get("review_ids", [])
+    reviews = []
+    if len(review_ids) != 0:
+        review_collection = db.get_collection('review')
+        for review_id in review_ids:
+            review = review_collection.find_one({"_id": review_id})
+            reviews.append(review)
+            if review is None:
+                raise ValueError(f"Review with id {review_id} not found")
+
+    result = {
+        "reviews": reviews,
+        "user": user
+    }
+
+    return json.dumps(result)
