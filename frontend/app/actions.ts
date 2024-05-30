@@ -5,20 +5,52 @@ import { redirect } from 'next/navigation'
 import { kv } from '@vercel/kv'
 
 import { auth } from '@/auth'
-import { type Chat } from '@/lib/types'
+import { type Review } from '@/lib/types'
 
-export async function getChats(userId?: string | null) {
-  console.log('getChats')
+export async function getReviewsByUser(userId?: string | null){
+  console.log('getReviewsByUser');
+  
+  const url =
+    process.env['API_URL'] + 'db/getReviewsByUser' + '?user_id=' + userId
 
-  if (!userId) {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + process.env['API_TOKEN']
+      }
+    }).then(res => {      
+      if (!res.ok) {        
+        return []
+      }
+      return res.json()
+    })
+    
+    const reviews: Review[] = res.map((review: any) => {
+      return {
+        id: review._id,
+        title: review.title,
+        createdAt: review.created_at,
+        userId: review.user_id,
+        path: `/chat/${review._id}`,
+        messages: review.messages
+      }
+    })
+    
+    return reviews
+
+  } catch (error) {
+    console.error('getReviewsByUser error:\n', error)
     return []
   }
+}
 
-  const url = process.env['API_URL'] + 'history/getchats'
-  const session = await auth()
-  console.log(session?.user);
+export async function getReview(prarm_id?: string) {
+  console.log('getReview')
 
-  const user = JSON.stringify(session?.user)
+  const url =
+    process.env['API_URL'] + 'db/getReview' + '?review_id=' + prarm_id
 
   try {
     const res = await fetch(url, {
@@ -27,28 +59,63 @@ export async function getChats(userId?: string | null) {
         'Content-Type': 'application/json',
         Authorization: 'Bearer ' + process.env['API_TOKEN']
       },
-      body: user
     }).then(res => res.json())
 
-    console.log('res: ', res)
-    return []
+    // console.log('res: ', res);
+
+    const review: Review = {
+      id: res._id,
+      title: res.story,
+      createdAt: res.created_at,
+      userId: res.user_id,
+      path: `/chat/${res._id}`,
+      messages: res.messages
+    }
+
+    return review
+      
   } catch (error) {
-    console.error('error: ', error)
-    return []
+    console.error('getReview error:\n', error)
+    return null
   }
 }
 
-export async function getChat(id: string, userId: string) {
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
 
-  if (!chat || (userId && chat.userId !== userId)) {
-    return null
+export async function saveReview(chat: Review) {
+  console.log('saveReview');
+  
+  const session = await auth()
+
+  if (session && session.user) {
+    const session = await auth()
+    
+    const url = process.env['API_URL'] + 'db/saveReview'
+
+    const body = JSON.stringify(chat)
+    console.log("======= body =======\n", body);
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + process.env['API_TOKEN'],
+          body: body
+        },
+      }).then(res => res.json())
+    } catch (error) {
+      console.error('saveReview error:\n', error)
+      return []
+    }
+
+  } else {
+    return
   }
-
-  return chat
 }
 
 export async function removeChat({ id, path }: { id: string; path: string }) {
+  console.log('removeChat');
+  
   const session = await auth()
 
   if (!session) {
@@ -74,6 +141,8 @@ export async function removeChat({ id, path }: { id: string; path: string }) {
 }
 
 export async function clearChats() {
+  console.log('clearChats');
+  
   const session = await auth()
 
   if (!session?.user?.id) {
@@ -82,25 +151,32 @@ export async function clearChats() {
     }
   }
 
-  const chats: string[] = await kv.zrange(`user:chat:${session.user.id}`, 0, -1)
-  if (!chats.length) {
-    return redirect('/')
-  }
-  const pipeline = kv.pipeline()
+  const url = process.env['API_URL'] + 'db/deleteReviewsByUser' + '?user_id=' + session.user.id
 
-  for (const chat of chats) {
-    pipeline.del(chat)
-    pipeline.zrem(`user:chat:${session.user.id}`, chat)
-  }
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + process.env['API_TOKEN'],
+      }
+    }).then(res => res.json())
 
-  await pipeline.exec()
+    console.log('deleteReviewsByUser res: ', res)
+    
+  } catch (error) {
+    console.error('deleteReviewsByUser error:\n', error)
+    return 
+  }
 
   revalidatePath('/')
-  return redirect('/')
+  redirect('/')  
 }
 
 export async function getSharedChat(id: string) {
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
+  console.log('getSharedChat');
+  
+  const chat = await kv.hgetall<Review>(`chat:${id}`)
 
   if (!chat || !chat.sharePath) {
     return null
@@ -118,7 +194,7 @@ export async function shareChat(id: string) {
     }
   }
 
-  const chat = await kv.hgetall<Chat>(`chat:${id}`)
+  const chat = await kv.hgetall<Review>(`chat:${id}`)
 
   if (!chat || chat.userId !== session.user.id) {
     return {
@@ -136,21 +212,6 @@ export async function shareChat(id: string) {
   return payload
 }
 
-export async function saveChat(chat: Chat) {
-  const session = await auth()
-
-  if (session && session.user) {
-    const pipeline = kv.pipeline()
-    pipeline.hmset(`chat:${chat.id}`, chat)
-    pipeline.zadd(`user:chat:${chat.userId}`, {
-      score: Date.now(),
-      member: `chat:${chat.id}`
-    })
-    await pipeline.exec()
-  } else {
-    return
-  }
-}
 
 export async function refreshHistory(path: string) {
   redirect(path)

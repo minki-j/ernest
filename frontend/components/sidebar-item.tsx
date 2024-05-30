@@ -15,12 +15,12 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { type Chat } from '@/lib/types'
+import { type Review } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
 interface SidebarItemProps {
   index: number
-  chat: Chat
+  chat: Review
   children: React.ReactNode
 }
 
@@ -28,8 +28,8 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
   const pathname = usePathname()
 
   const isActive = pathname === chat.path
-  const [newChatId, setNewChatId] = useLocalStorage('newChatId', null)
-  const shouldAnimate = index === 0 && isActive && newChatId
+  const [newreviewId, setNewreviewId] = useLocalStorage('newreviewId', null)
+  const shouldAnimate = index === 0 && isActive && newreviewId
 
   if (!chat?.id) return null
 
@@ -105,7 +105,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
                   }}
                   onAnimationComplete={() => {
                     if (index === chat.title.length - 1) {
-                      setNewChatId(null)
+                      setNewreviewId(null)
                     }
                   }}
                 >

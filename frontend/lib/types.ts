@@ -4,7 +4,7 @@ export type Message = CoreMessage & {
   id: string
 }
 
-export interface Chat extends Record<string, any> {
+export interface Review extends Record<string, any> {
   id: string
   title: string
   createdAt: Date

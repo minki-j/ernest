@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Textarea from 'react-textarea-autosize'
 
-import { useActions, useUIState } from 'ai/rsc'
+import { useActions, useUIState, useAIState } from 'ai/rsc'
 
 import { UserMessage } from './stocks/message'
 import { type AI } from '@/lib/chat/actions'
@@ -30,6 +30,8 @@ export function PromptForm({
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
   const { submitUserMessage } = useActions()
   const [_, setMessages] = useUIState<typeof AI>()
+  const [currentReview] = useAIState()
+
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -48,21 +50,24 @@ export function PromptForm({
           e.target['message']?.blur()
         }
 
-        const value = input.trim()
+        const message = input.trim()
         setInput('')
-        if (!value) return
+        if (!message) return
 
         // Optimistically add user message UI
         setMessages(currentMessages => [
           ...currentMessages,
           {
             id: nanoid(),
-            display: <UserMessage>{value}</UserMessage>
+            role: 'user',
+            display: <UserMessage>{message}</UserMessage>
           }
         ])
 
-        // Submit and get response message
-        const responseMessage = await submitUserMessage(value)
+        const responseMessage = await submitUserMessage(
+          message,
+          currentReview.reviewId
+        )
         setMessages(currentMessages => [...currentMessages, responseMessage])
       }}
     >

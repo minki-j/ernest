@@ -15,7 +15,8 @@ export default async function IndexPage() {
   const missingKeys = await getMissingKeys()
 
   return (
-    <AI initialAIState={{ chatId: id, messages: [] }}>
+    // AI State being initialized with a new id and an empty array of messages.
+    <AI initialAIState={{ reviewId: id, messages: [] }}> 
       <Chat id={id} session={session} missingKeys={missingKeys} />
     </AI>
   )

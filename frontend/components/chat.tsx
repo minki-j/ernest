@@ -26,7 +26,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   const [messages] = useUIState()
   const [aiState] = useAIState()
 
-  const [_, setNewChatId] = useLocalStorage('newChatId', id)
+  const [_, setNewreviewId] = useLocalStorage('newreviewId', id)
 
   useEffect(() => {
     if (session?.user) {
@@ -44,7 +44,7 @@ export function Chat({ id, className, session, missingKeys }: ChatProps) {
   }, [aiState.messages, router])
 
   useEffect(() => {
-    setNewChatId(id)
+    setNewreviewId(id)
   })
 
   useEffect(() => {

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import * as React from 'react'
 import { toast } from 'sonner'
 
-import { ServerActionResult, type Chat } from '@/lib/types'
+import { ServerActionResult, type Review } from '@/lib/types'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,9 +25,9 @@ import {
 } from '@/components/ui/tooltip'
 
 interface SidebarActionsProps {
-  chat: Chat
+  chat: Review
   removeChat: (args: { id: string; path: string }) => ServerActionResult<void>
-  shareChat: (id: string) => ServerActionResult<Chat>
+  shareChat: (id: string) => ServerActionResult<Review>
 }
 
 export function SidebarActions({

@@ -1,4 +1,4 @@
-import { clearChats, getChats } from '@/app/actions'
+import { clearChats, getReviewsByUser } from '@/app/actions'
 import { ClearHistory } from '@/components/clear-history'
 import { SidebarItems } from '@/components/sidebar-items'
 import { ThemeToggle } from '@/components/theme-toggle'
@@ -10,12 +10,15 @@ interface SidebarListProps {
 }
 
 const loadChats = cache(async (userId?: string) => {
-  return await getChats(userId)
+  console.log("calling loadChats (not using cache) ")
+  const result = await getReviewsByUser(userId)
+  // console.log("cache reviews: ", result)
+
+  return result
 })
 
 export async function SidebarList({ userId }: SidebarListProps) {
   const chats = await loadChats(userId)
-  console.log("SidebarList", chats)
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">

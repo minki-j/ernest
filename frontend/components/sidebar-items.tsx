@@ -1,6 +1,6 @@
 'use client'
 
-import { Chat } from '@/lib/types'
+import { Review } from '@/lib/types'
 import { AnimatePresence, motion } from 'framer-motion'
 
 import { removeChat, shareChat } from '@/app/actions'
@@ -9,7 +9,7 @@ import { SidebarActions } from '@/components/sidebar-actions'
 import { SidebarItem } from '@/components/sidebar-item'
 
 interface SidebarItemsProps {
-  chats?: Chat[]
+  chats?: Review[]
 }
 
 export function SidebarItems({ chats }: SidebarItemsProps) {
