@@ -1,4 +1,4 @@
-# AI Customer Review Agent
+# AI Customer Interview Agent
 
 This application is a review platform where an AI agent, Ernest, gathers reviews by interacting with customers, instead of customers creating their own content.
 
