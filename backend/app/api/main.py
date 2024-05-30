@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
-from app.api.routes import chat, history
+from app.api.routes import chat, db
+
 
 api_router = APIRouter()
 api_router.include_router(
@@ -8,5 +9,5 @@ api_router.include_router(
 )
 
 api_router.include_router(
-    history.router, prefix="/history", tags=["history"]
+    db.router, prefix="/db", tags=["db"]
 )

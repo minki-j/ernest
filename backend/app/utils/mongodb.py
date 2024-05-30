@@ -127,3 +127,58 @@ def fetch_user(user_id: str, name: str, email: str):
     }
 
     return json.dumps(result)
+
+def fetch_review(review_id: str):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    review_collection = db.get_collection('review')
+    review = review_collection.find_one({"_id": review_id})
+    if review is None:
+        raise ValueError(f"Review with id {review_id} not found")
+    
+    return review
+
+def fetch_reviews_by_user_id(user_id: str):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    review_collection = db.get_collection('review')
+    reviews = review_collection.find({"user_id": user_id})
+    reviews = list(reviews)
+
+    if reviews is None or len(reviews) == 0:
+        raise ValueError(f"reviews with user_id {user_id} not found")
+    
+    return reviews
+
+def save_review(review: dict):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    review_collection = db.get_collection('review')
+    review_id = review_collection.update_one(
+            {"_id": review.id},
+            {"$set": review}
+        )
+
+    user_id = review.get("user_id")
+    user_collection = db.get_collection('user')
+    user_collection.update_one(
+        {"_id": user_id},
+        {"$push": {"review_ids": review_id}}
+    )
+
+    return review_id
+
+def delete_reviews_by_user_id(user_id: str):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    review_collection = db.get_collection('review')
+    review_collection.delete_many({"user_id": user_id})
+
+    user_collection = db.get_collection('user')
+    user_collection.update_one({"_id": user_id}, {"$unset": {"review_ids": []}})
+
+    return True

@@ -16,8 +16,8 @@ from app.langchain.utils.converters import messages_to_string
 class MissingDetail(Enum):
     """A missing detail that the journalist should ask"""
 
-    option_1 = "story_and_reply"
-    option_2 = "story_only"
+    story_and_reply = "story_and_reply"
+    story_only = "story_only"
 
 class BestMissingDetail(BaseModel):
     """The best missing detail that the journalist should ask"""
@@ -34,15 +34,16 @@ def pick_best_missing_detail(state: dict[str, Documents]):
         """
 You are helping a journalist at a famous magazine with 40+ years of experience. The reporter's main area of topic is about how customers experienced services, products, and businesses. Her stories are always well-researched and well-written, which a lot of readers appreciate.
 Your task is to pick the best missing detail that the journalist should ask the interviewee. You will be provided with the story and the conversation between the journalist and the interviewee. You need to decide whether the best missing detail is from provided options.
-Remember that the journalist will ask the interviewee about the missing detail you picked. Consider from the interviewee's perspective and make sure the chosen missing detail is not repetitive or irrelevant.
+Remember that the journalist will ask the interviewee about the missing detail you picked. Consider from the interviewee's perspective and make sure the chosen missing detail is not repetitive or irrelevant. Make sure that the chosen missing detail is natural to ask in the context of the latest conversation.
 
 Lastest conversation: {conversation}
 Summarized story: {story}
 
 Missing Detail options from which you need to pick the best one:
-option 1: {option_1}
-option 2: {option_2}
-        """)
+story_and_reply: {story_and_reply}
+story_only: {option_2}
+        """
+    )
 
     chain = prompt | chat_model.with_structured_output(BestMissingDetail)
 
@@ -50,8 +51,8 @@ option 2: {option_2}
         {
             "story": documents.review.story,
             "conversation": messages_to_string(documents.review.messages[-10:]),
-            "option_1": documents.state.missing_details["story_and_reply"],
-            "option_2": documents.state.missing_details["story_only"],
+            "story_and_reply": documents.state.missing_details["story_and_reply"],
+            "story_only": documents.state.missing_details["story_only"],
         }
     )
     print("     best missing detail:", best_missing_detail.choice.value)

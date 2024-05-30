@@ -16,6 +16,7 @@ class UpdateStory(BaseModel):
     """A story that is being updated with a reply from a customer."""
 
     content: str = Field(description="The content of the story.")
+    title: str = Field(description="The title of the story in 7 words or less.")
 
 
 def update_story(state: dict[str, Documents]):
@@ -62,13 +63,14 @@ updated story:
                 user_role="customer",
             ),
         }
-    ).content
-    print("    : updated_story ->", updated_story)
+    )
+    print("    : updated_story ->", updated_story.content)
 
     if getattr(documents.state, "stories", None) is None:
         documents.state.stories = []
 
-    documents.review.story = updated_story
+    documents.review.story = updated_story.content
+    documents.review.title = updated_story.title
 
     return {"documents": documents}
 

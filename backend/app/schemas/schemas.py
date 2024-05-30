@@ -78,7 +78,7 @@ class State(Base):
 
 class Role(str, Enum):
     USER = "user"
-    AI = "ai"
+    AI = "assistant"
 
 
 # There is no id for message. We use order of the message in the conversation to identify it. In order to keep the order, we never delete messages. We just mark them as deleted.
@@ -132,6 +132,7 @@ class Review(Base):
     created_at: str
     state: State  
     story: str
+    title: str
 
     def __init__(self, user_id:str, **kwargs):
         self.user_id = user_id
@@ -142,6 +143,7 @@ class Review(Base):
         self.created_at = datetime.now().isoformat()
         self.state = State()
         self.story = ""
+        self.title = ""
         for key, value in kwargs.items():
             if key == "messages":
                 messages = []

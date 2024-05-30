@@ -11,6 +11,9 @@ from app.utils.mongodb import (
     update_document,
     delete_document,
     fetch_user,
+    fetch_review,
+    fetch_reviews_by_user_id,
+    delete_reviews_by_user_id,
 )
 
 from app.langchain.main_graph import langgraph_app
@@ -41,13 +44,31 @@ def root(
     return {"message": "/history route working fine"}
 
 
-@router.post("/getchats")
-def get_chats(
-    user = Body(...),
+@router.post("/getReview")
+def get_review(
     token= Depends(get_current_user),
+    review_id: str = Query(...),
 ):
-    name = user["name"]
-    email = user["email"]
-    id = user["id"]
-    documents = fetch_user(id, name, email)
-    return documents
+    review = fetch_review(review_id)
+    return review
+
+@router.post("/getReviewsByUser")
+def get_review_by_user(
+    token= Depends(get_current_user),
+    user_id: str = Query(...),
+):
+    try:
+        review = fetch_reviews_by_user_id(user_id)
+        return review
+    except ValueError as e:
+        error_msg = str(e)
+        raise HTTPException(status_code=404, detail=error_msg)
+
+# delete all reviews for a user
+@router.post("/deleteReviewsByUser")
+def delete_reviews_by_user(
+    token= Depends(get_current_user),
+    user_id: str = Query(...),
+):
+    result = delete_reviews_by_user_id(user_id)
+    return result
