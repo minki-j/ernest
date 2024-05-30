@@ -12,7 +12,7 @@ export async function createUser(
   hashedPassword: string,
   salt: string
 ) {
-  const existingUser = await getUser(email)
+  const existingUser = await getUser()
 
   if (existingUser) {
     return {
