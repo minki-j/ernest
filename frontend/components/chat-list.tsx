@@ -3,6 +3,7 @@ import { UIState } from '@/lib/chat/actions'
 import { Session } from '@/lib/types'
 import Link from 'next/link'
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons'
+import { redirect } from 'next/navigation'
 
 export interface ChatList {
   messages: UIState
@@ -14,7 +15,12 @@ export function ChatList({ messages, session, isShared }: ChatList) {
   if (!messages.length) {
     return null
   }
+  console.log(session);
 
+  if (!session) {
+    redirect('/login')
+  }
+  
   return (
     <div className="relative mx-auto max-w-2xl px-4">
       {!isShared && !session ? (
@@ -33,7 +39,7 @@ export function ChatList({ messages, session, isShared }: ChatList) {
                 <Link href="/signup" className="underline">
                   sign up
                 </Link>{' '}
-                to save and revisit your chat history!
+                to use the chat.
               </p>
             </div>
           </div>
@@ -41,12 +47,13 @@ export function ChatList({ messages, session, isShared }: ChatList) {
         </>
       ) : null}
 
-      {messages.map((message, index) => (
-        <div key={message.id}>
-          {message.display}
-          {index < messages.length - 1 && <Separator className="my-4" />}
-        </div>
-      ))}
+      {messages.length > 0 &&
+        messages.filter(msg => msg).map((message, index) => (
+          <div key={message.id}>
+            {message && message.display}
+            {index < messages.length - 1 && <Separator className="my-4" />}
+          </div>
+        ))}
     </div>
   )
 }

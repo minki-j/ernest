@@ -10,9 +10,9 @@ export default function LoginForm() {
         'use server'
         await signIn('google')
       }}
-      className="flex flex-col items-center gap-4 space-y-3"
+      className="flex flex-col items-center mx-auto gap-4 space-y-3 max-w-md"
     >
-        <GoogleButton />
+      <GoogleButton />
     </form>
   )
 }
