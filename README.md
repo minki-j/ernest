@@ -1,6 +1,6 @@
 # AI Customer Interview Agent
 
-[Visit the website](https://ernest-qzh0jdd5b-jung0072s-projects.vercel.app/)
+[Visit the website](https://ernestai-jung0072s-projects.vercel.app/)
 
 This application is a review platform where an AI agent, Ernest, gathers reviews by interacting with customers, instead of customers creating their own content.
 
