@@ -8,7 +8,7 @@ import { auth } from '@/auth'
 
 
 const loadChats = cache(async (userId?: string) => {
-  // console.log("calling loadChats (not using cache) ")
+  console.log("calling loadChats (not using cache) ")
   const result = await getReviewsByUser(userId)
 
   return result
@@ -16,12 +16,17 @@ const loadChats = cache(async (userId?: string) => {
 
 export async function SidebarList() {
   const session = await auth()
+  let chats = []
 
   if (!session?.user?.id) {
     return null
-  } 
-  
-  const chats = await loadChats(session.user.id)
+  } else {
+    console.log('session.user.id: ', session.user.id)
+    console.log("try calling loadChats ");
+    chats = await loadChats(session?.user?.id)
+    console.log("loaded chats: ", chats?.length);
+  }
+    
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
