@@ -1,7 +1,0 @@
-{
-    "functions": {
-        "app/components/sidebar-list": {
-            "maxDuration": 60
-        }
-    }
-}

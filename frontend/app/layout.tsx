@@ -24,6 +24,8 @@ export const metadata = {
   }
 }
 
+export const maxDuration = 60;
+
 export const viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: 'white' },

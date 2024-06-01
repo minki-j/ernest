@@ -24,7 +24,7 @@ web_app.include_router(api_router)
     ],
     volumes={"/ernest": vol},
     timeout=600,  # 10 minutes
-    container_idle_timeout=600,
+    container_idle_timeout=60,
 )
 @asgi_app()
 def fastapi_asgi():
