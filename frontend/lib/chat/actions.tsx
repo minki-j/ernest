@@ -28,6 +28,11 @@ import {
 import { Review, Message } from '@/lib/types'
 import { auth } from '@/auth'
 
+let api_url =
+  process.env.NODE_ENV === 'development'
+    ? process.env['API_URL_DEV']
+    : process.env['API_URL']
+
 async function submitUserMessage(message: string, reviewId: string) {
   'use server'
 
@@ -53,14 +58,13 @@ async function submitUserMessage(message: string, reviewId: string) {
   formData.append('review_id', reviewId)
   formData.append('user_msg', message)
   
-
-  const res = await fetch(
-    'https://jung0072--survey-buddy-fastapi-asgi-dev.modal.run/chat/invoke',
-    {
-      method: 'POST',
-      body: formData
-    }
-  )
+  const url = api_url + 'chat/invoke'
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData
+  })
+  console.log('res: ', res);
+  
 
   if (!res.ok) {
     throw new Error(`HTTP error! status: ${res.status}`)

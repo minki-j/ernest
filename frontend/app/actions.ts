@@ -7,12 +7,18 @@ import { kv } from '@vercel/kv'
 import { auth } from '@/auth'
 import { type Review } from '@/lib/types'
 
-export async function getReviewsByUser(userId?: string | null){
-  console.log('getReviewsByUser');
-  
-  const url =
-    process.env['API_URL'] + 'db/getReviewsByUser' + '?user_id=' + userId
+let api_url =
+  process.env.NODE_ENV === 'development'
+    ? process.env['API_URL_DEV']
+    : process.env['API_URL']
 
+export async function getReviewsByUser(userId?: string | null){
+  console.log('getReviewsByUser');  
+  if (!userId) {
+    console.error('getReviewsByUser error: userId is undefined')
+    return []
+  }
+  const url = api_url + "db/getReviewsByUser" + '?user_id=' + userId
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -20,8 +26,9 @@ export async function getReviewsByUser(userId?: string | null){
         'Content-Type': 'application/json',
         Authorization: 'Bearer ' + process.env['API_TOKEN']
       }
-    }).then(res => {      
-      if (!res.ok) {        
+    }).then(res => {
+      if (!res.ok) {
+        console.error('getReviewsByUser error:\n', res)
         return []
       }
       return res.json()
@@ -37,6 +44,7 @@ export async function getReviewsByUser(userId?: string | null){
         messages: review.messages
       }
     })
+    // console.log('reviews: ', reviews);
     
     return reviews
 
@@ -49,8 +57,7 @@ export async function getReviewsByUser(userId?: string | null){
 export async function getReview(prarm_id?: string) {
   console.log('getReview')
 
-  const url =
-    process.env['API_URL'] + 'db/getReview' + '?review_id=' + prarm_id
+  const url = api_url + 'db/getReview' + '?review_id=' + prarm_id
 
   try {
     const res = await fetch(url, {
@@ -89,7 +96,7 @@ export async function saveReview(chat: Review) {
   if (session && session.user) {
     const session = await auth()
     
-    const url = process.env['API_URL'] + 'db/saveReview'
+    const url = api_url + 'db/saveReview'
 
     const body = JSON.stringify(chat)
     console.log("======= body =======\n", body);
@@ -151,14 +158,14 @@ export async function clearChats() {
     }
   }
 
-  const url = process.env['API_URL'] + 'db/deleteReviewsByUser' + '?user_id=' + session.user.id
+  const url = api_url + 'db/deleteReviewsByUser' + '?user_id=' + session.user.id
 
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: 'Bearer ' + process.env['API_TOKEN'],
+        Authorization: 'Bearer ' + process.env['API_TOKEN']
       }
     }).then(res => res.json())
 

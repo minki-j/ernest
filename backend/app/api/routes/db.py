@@ -41,6 +41,7 @@ router = APIRouter()
 def root(
     token: str = Depends(get_current_user),
 ):
+    print("===>API CALL: db/ route called")
     return {"message": "/history route working fine"}
 
 
@@ -49,6 +50,7 @@ def get_review(
     token= Depends(get_current_user),
     review_id: str = Query(...),
 ):
+    print("===>API CALL: db/getReview called")
     review = fetch_review(review_id)
     return review
 
@@ -57,7 +59,8 @@ def get_review_by_user(
     token= Depends(get_current_user),
     user_id: str = Query(...),
 ):
-    try:
+    print("===>API CALL: db/getReviewsByUser")
+    try:    
         review = fetch_reviews_by_user_id(user_id)
         return review
     except ValueError as e:
@@ -70,5 +73,6 @@ def delete_reviews_by_user(
     token= Depends(get_current_user),
     user_id: str = Query(...),
 ):
+    print("===>API CALL: db/deleteReviewsByUser")
     result = delete_reviews_by_user_id(user_id)
     return result

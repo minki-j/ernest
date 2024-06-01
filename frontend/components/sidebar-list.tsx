@@ -3,23 +3,25 @@ import { ClearHistory } from '@/components/clear-history'
 import { SidebarItems } from '@/components/sidebar-items'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { cache } from 'react'
+import { auth } from '@/auth'
 
-interface SidebarListProps {
-  userId?: string
-  children?: React.ReactNode
-}
+
 
 const loadChats = cache(async (userId?: string) => {
-  console.log("calling loadChats (not using cache) ")
+  // console.log("calling loadChats (not using cache) ")
   const result = await getReviewsByUser(userId)
-  // console.log("cache reviews: ", result)
 
   return result
 })
 
-export async function SidebarList({ userId }: SidebarListProps) {
-  const chats = await loadChats(userId)
-  console.log('======= chats =======\n', chats?.length)
+export async function SidebarList() {
+  const session = await auth()
+
+  if (!session?.user?.id) {
+    return null
+  } 
+  
+  const chats = await loadChats(session.user.id)
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
