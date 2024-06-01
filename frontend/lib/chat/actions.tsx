@@ -28,10 +28,7 @@ import {
 import { Review, Message } from '@/lib/types'
 import { auth } from '@/auth'
 
-let api_url =
-  process.env.NODE_ENV === 'development'
-    ? process.env['API_URL_DEV']
-    : process.env['API_URL']
+let api_url =process.env['API_URL']
 
 async function submitUserMessage(message: string, reviewId: string) {
   'use server'

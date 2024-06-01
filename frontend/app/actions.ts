@@ -7,10 +7,7 @@ import { kv } from '@vercel/kv'
 import { auth } from '@/auth'
 import { type Review } from '@/lib/types'
 
-let api_url =
-  process.env.NODE_ENV === 'development'
-    ? process.env['API_URL_DEV']
-    : process.env['API_URL']
+let api_url =process.env['API_URL']
 
 export async function getReviewsByUser(userId?: string | null){
   console.log('getReviewsByUser');  

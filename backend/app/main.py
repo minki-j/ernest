@@ -23,7 +23,8 @@ web_app.include_router(api_router)
         Secret.from_name("langsmith"),
     ],
     volumes={"/ernest": vol},
-    timeout=600,
+    timeout=600,  # 10 minutes
+    container_idle_timeout=600,
 )
 @asgi_app()
 def fastapi_asgi():
