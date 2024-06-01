@@ -38,7 +38,9 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
     setLoading(false)
   }, [])
 
-  const toggleSidebar = () => {
+  const toggleSidebar = () => {   
+    console.log("toggleSidebar");
+     
     setSidebarOpen(value => {
       const newState = !value
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newState))

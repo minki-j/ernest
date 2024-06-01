@@ -15,7 +15,6 @@ export function ChatList({ messages, session, isShared }: ChatList) {
   if (!messages.length) {
     return null
   }
-  console.log(session);
 
   if (!session) {
     redirect('/login')

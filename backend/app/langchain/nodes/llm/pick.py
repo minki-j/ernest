@@ -41,7 +41,7 @@ Summarized story: {story}
 
 Missing Detail options from which you need to pick the best one:
 story_and_reply: {story_and_reply}
-story_only: {option_2}
+story_only: {story_only}
         """
     )
 
@@ -58,11 +58,11 @@ story_only: {option_2}
     print("     best missing detail:", best_missing_detail.choice.value)
     print("     reason:", best_missing_detail.reason)
 
-    if best_missing_detail.choice == MissingDetail.option_1:
+    if best_missing_detail.choice == MissingDetail.story_and_reply:
         documents.state.chosen_missing_detail = documents.state.missing_details[
             "story_and_reply"
         ]
-    elif best_missing_detail.choice == MissingDetail.option_2:
+    elif best_missing_detail.choice == MissingDetail.story_only:
         documents.state.chosen_missing_detail = documents.state.missing_details[
             "story_only"
         ]

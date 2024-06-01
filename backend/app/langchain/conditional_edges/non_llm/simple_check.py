@@ -16,7 +16,6 @@ def is_user_name(state: dict[str, Documents]):
 def what_stage_of_chat(state: dict[str, Documents]):
     print("\n==>> is_start_of_chat")
     documents = state["documents"]
-    print("    messages", documents.review.messages)
 
     # TODO: change this to LLM call
     end_conversation = False

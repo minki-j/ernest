@@ -1,4 +1,5 @@
 'use client'
+import { useState, useEffect } from 'react'
 
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 
@@ -7,15 +8,23 @@ import { Button } from '@/components/ui/button'
 
 import { IconSidebar } from '@/components/ui/icons'
 
+import { useSidebar } from '@/lib/hooks/use-sidebar'
+
 interface SidebarMobileProps {
   children: React.ReactNode
 }
 
 export function SidebarMobile({ children }: SidebarMobileProps) {
+  const { toggleSidebar, isSidebarOpen, isLoading } = useSidebar()
+  
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" className="-ml-2 flex size-9 p-0 lg:hidden">
+        <Button
+          variant="ghost"
+          className="-ml-2 flex size-9 p-0 lg:hidden"
+          onClick={toggleSidebar}
+        >
           <IconSidebar className="size-6" />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>

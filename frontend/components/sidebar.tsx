@@ -10,10 +10,16 @@ export interface SidebarProps extends React.ComponentProps<'div'> {}
 export function Sidebar({ className, children }: SidebarProps) {
   const { isSidebarOpen, isLoading } = useSidebar()
 
+  const sideBarstate =isSidebarOpen && !isLoading ? 'open' : 'closed'
+
+
   return (
     <div
       data-state={isSidebarOpen && !isLoading ? 'open' : 'closed'}
-      className={cn(className, 'h-full flex-col dark:bg-zinc-950')}
+      className={cn(
+        className,
+        'h-full flex-col dark:bg-zinc-950'
+      )}
     >
       {children}
     </div>

@@ -5,14 +5,10 @@ import { cn } from '@/lib/utils'
 import { auth } from '@/auth'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
-  IconGitHub,
-  IconNextChat,
   IconSeparator,
-  IconVercel
 } from '@/components/ui/icons'
 import { UserMenu } from '@/components/user-menu'
 import { SidebarMobile } from './sidebar-mobile'
-import { SidebarToggle } from './sidebar-toggle'
 import { ChatHistory } from './chat-history'
 import { Session } from '@/lib/types'
 
@@ -22,12 +18,9 @@ async function UserOrLogin() {
   return (
     <>
       {session?.user ? (
-        <>
-          <SidebarMobile>
-            <ChatHistory userId={session.user.id} />
-          </SidebarMobile>
-          <SidebarToggle />
-        </>
+        <SidebarMobile>
+          <ChatHistory />
+        </SidebarMobile>
       ) : (
         <Link href="/new" rel="nofollow">
           {/* TODO: Add an Icon */}
@@ -56,8 +49,7 @@ export function Header() {
           <UserOrLogin />
         </React.Suspense>
       </div>
-      <div className="flex items-center justify-end space-x-2">
-      </div>
+      <div className="flex items-center justify-end space-x-2"></div>
     </header>
   )
 }

@@ -29,6 +29,8 @@ export interface ChatPageProps {
 // }
 
 export default async function ChatPage({ params }: ChatPageProps) {
+  console.log("ChatPage: ", params);
+  
   const session = (await auth()) as Session
   const missingKeys = await getMissingKeys()
 

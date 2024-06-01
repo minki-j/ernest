@@ -1,6 +1,6 @@
 from modal import App, Image, Volume
 
-app = App("survey_buddy")
+app = App("ernest_app")
 
 image = (
     Image.debian_slim(python_version="3.12.2")

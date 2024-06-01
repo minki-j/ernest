@@ -12,10 +12,8 @@ export function SidebarToggle() {
   return (
     <Button
       variant="ghost"
-      className="-ml-2 hidden size-9 p-0 lg:flex"
-      onClick={() => {
-        toggleSidebar()
-      }}
+      className="-ml-2 size-9 p-0 lg:flex"
+      onClick={toggleSidebar}
     >
       <IconSidebar className="size-6" />
       <span className="sr-only">Toggle Sidebar</span>

@@ -19,6 +19,7 @@ const loadChats = cache(async (userId?: string) => {
 
 export async function SidebarList({ userId }: SidebarListProps) {
   const chats = await loadChats(userId)
+  console.log('======= chats =======\n', chats?.length)
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
@@ -29,7 +30,7 @@ export async function SidebarList({ userId }: SidebarListProps) {
           </div>
         ) : (
           <div className="p-8 text-center">
-            <p className="text-sm text-muted-foreground">No chat history</p>
+            <p className="text-sm text-muted-foreground">No chat history...</p>
           </div>
         )}
       </div>
