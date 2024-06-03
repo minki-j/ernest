@@ -60,7 +60,7 @@ async function submitUserMessage(message: string, reviewId: string) {
     method: 'POST',
     body: formData
   })
-  console.log('res: ', res);
+  // console.log('res: ', res);
   
 
   if (!res.ok) {
