@@ -7,8 +7,6 @@ import { Chat } from '@/components/chat'
 import { AI } from '@/lib/chat/actions'
 import { Session } from '@/lib/types'
 
-export const maxDuration = 60
-
 export interface ChatPageProps {
   params: {
     id: string
