@@ -26,22 +26,22 @@ def update_story(state: dict[str, Documents]):
     prompt = PromptTemplate.from_template(
         """
 You are a journalist at a famous magazine with 40+ years of experience. Your main area of topic is about how customers experienced services, products, and businesses. Your stories are always well-researched and well-written, which a lot of readers appreciate. 
-In this specific task, you are going to incrementally improve the story with what the customer said during the interview. You'll be provided a reply from the customer one by one along with the previous story. You need to incorporate the reply into the story in a way that makes sense and improves the story.
+In this specific task, you are going to incrementally improve the story with what the customer said during the interview. You'll be provided a reply from the customer one by one along with the previous story. You need to incorporate the reply into the story in a way that makes sense and improves the story. You need to write the story in first person perspective.
 
 
 Here are some examples:
 
-previous story: The customer went to a restaurant and ordered a steak. The steak was overcooked and the customer was not happy.
+previous story: I went to a restaurant and ordered a steak. The steak was overcooked and I was not happy.
 recent reply: (journalist) Did you ask the waiter to cook it less? (customer) Yes, I did. I emphasized that I wanted it medium-rare. Can't believe that this happened to this kind of high-end restaurant.
-updated story: The customer went to a high-end restaurant and ordered a steak. The steak was overcooked and the customer was not happy. The customer asked the waiter to cook it less and emphasized that they wanted it medium-rare. The customer can't believe that this happened to this kind of high-end restaurant.
+updated story: I went to a high-end restaurant and ordered a steak. The steak was overcooked and I was not happy. I asked the waiter to cook it less and emphasized that they wanted it medium-rare. I can't believe that this happened to this kind of high-end restaurant.
 
-previoud story: The customer went to a car dealership and bought a car. The customer was happy with the car, but the customer service was not good.
+previoud story: I went to a car dealership and bought a car. I was happy with the car, but customer service was not good.
 recent reply: (journalist) Why did you find the manager is rude? (customer) The manager didn't greet me when I entered the dealership. He was on the phone and didn't even look at me.
-updated story: The customer went to a car dealership and bought a car. The customer was happy with the car, but the customer service was not good. The manager didn't greet the customer when they entered the dealership. The manager was on the phone and didn't even look at the customer.
+updated story: I went to a car dealership and bought a car. I was happy with the car, but customer service was not good. The manager didn't greet I when they entered the dealership. The manager was on the phone and didn't even look at I.
 
-previous story: The customer went to a hotel and stayed for a night. 
+previous story: I went to a hotel and stayed for a night. 
 recent reply: (journalist) How did you find the hotel? (customer) It's a nice hotel. The room is clean and the bed is comfortable. But the breakfast is not good.
-updated story: The customer went to a hotel and stayed for a night. The hotel is nice. The room is clean and the bed is comfortable. But the breakfast is not good.
+updated story: I went to a hotel and stayed for a night. The hotel is nice. The room is clean and the bed is comfortable. But the breakfast is not good.
 
 
 OK, now it's your turn!
@@ -101,8 +101,10 @@ Using a colloquial language can make the customer more comfortable and open up m
 You are a seasoned journalist and you know what is the best way to respond to the interviewee by instinct. 
 The missing detail you need to ask: {missing_detail}
 
-DO NOT FORGET that you MUST USE EMOJIES and COLLOQUIAL LANGUAGE!!
-DO NOT FORGET that you MUST USE EMOJIES and COLLOQUIAL LANGUAGE!!
+DO NOT FORGET that you CAN USE EMOJIES IF NEEDED!!
+DO NOT USE THE SAME REACTION OR QUESTION TWICE!!
+DO NOT FORGET that you CAN USE EMOJIES IF NEEDED!!
+DO NOT USE THE SAME REACTION OR QUESTION TWICE!!
 """,
             ),
             *messages,

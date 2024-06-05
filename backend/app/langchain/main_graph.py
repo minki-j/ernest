@@ -5,7 +5,9 @@ from langchain_core.runnables import RunnablePassthrough
 
 from app.langchain.schema import StateType
 from app.langchain.conditional_edges.non_llm.simple_check import what_stage_of_chat
+from app.langchain.conditional_edges.llm.check import is_msg_cut_off
 from app.langchain.nodes.non_llm.state_control import sync_state_and_doc
+from app.langchain.nodes.non_llm.predefined_reply import reply_for_incomplete_msg
 from app.langchain.utils.converters import to_path_map
 
 from app.langchain.subgraphs.start_of_chat.graph import start_of_chat
@@ -21,9 +23,8 @@ from app.langchain.subgraphs.end_of_chat.graph import end_of_chat
 
 
 g = StateGraph(StateType)
-g.set_entry_point("entry")
-
 g.add_node("entry", RunnablePassthrough())
+g.set_entry_point("entry")
 
 g.add_conditional_edges(
     "entry",

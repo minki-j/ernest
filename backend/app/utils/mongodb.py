@@ -182,3 +182,13 @@ def delete_reviews_by_user_id(user_id: str):
     user_collection.update_one({"_id": user_id}, {"$unset": {"review_ids": []}})
 
     return True
+
+
+def add_new_user(user: dict):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    user_collection = db.get_collection('user')
+    user_id = user_collection.insert_one(user)
+
+    return user_id

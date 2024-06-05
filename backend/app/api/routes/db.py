@@ -14,6 +14,7 @@ from app.utils.mongodb import (
     fetch_review,
     fetch_reviews_by_user_id,
     delete_reviews_by_user_id,
+    add_new_user,
 )
 
 from app.langchain.main_graph import langgraph_app
@@ -75,4 +76,24 @@ def delete_reviews_by_user(
 ):
     print("===>API CALL: db/deleteReviewsByUser")
     result = delete_reviews_by_user_id(user_id)
+    return result
+
+@router.post("/addNewUser")
+def add_new_user(
+    token= Depends(get_current_user),
+    user= Body(...),
+):
+    print("===>API CALL: db/addNewUser")
+    print("    : user ->", user)
+    user_id = user.get("user_id")
+    user = fetch_user(user_id)
+    if user:
+        raise HTTPException(status_code=400, detail="User already exists")
+    user = {
+        "user_id": user_id,
+        "name": user.get("name"),
+        "email": user.get("email"),
+        "created_at": datetime.now(),
+    }
+    result = add_new_user(user)
     return result

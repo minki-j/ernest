@@ -30,3 +30,13 @@ def greeting(state: dict[str, Documents]):
     documents.state.reply_message = first_msg_from_ai
 
     return {"documents": documents}
+
+def reply_for_incomplete_msg(state: dict[str, Documents]):
+    print("\n==>> reply_for_incomplete_msg")
+    documents = state["documents"]
+
+    message = "Oops 🤭 It looks like your message got cut off ✂️"
+
+    documents.state.reply_message = message
+
+    return {"documents": documents}

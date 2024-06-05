@@ -194,13 +194,13 @@ class User(Base):
 
     def __init__(self, **kwargs):
         self.name = None
-        self.pronouns = None
         self.email = None
-        self.username = None
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
         self.review_ids = []
         self.bios = []
+        # self.username = None
+        # self.pronouns = None
         for key, value in kwargs.items():
             if key == "bios":
                 bios = []
