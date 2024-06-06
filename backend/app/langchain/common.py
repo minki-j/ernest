@@ -5,14 +5,14 @@ from langchain_core.runnables import ConfigurableField
 
 output_parser = StrOutputParser()
 
-chat_model = ChatOpenAI(model="gpt-3.5-turbo").configurable_fields(
+chat_model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7).configurable_fields(
     temperature=ConfigurableField(
         id="llm_temperature",
         name="LLM Temperature",
         description="The temperature of the LLM",
     )
 )
-chat_model_openai_4o = ChatOpenAI(model="gpt-4o").configurable_fields(
+chat_model_openai_4o = ChatOpenAI(model="gpt-4o", temperature=0.7).configurable_fields(
     temperature=ConfigurableField(
         id="llm_temperature",
         name="LLM Temperature",
@@ -20,7 +20,7 @@ chat_model_openai_4o = ChatOpenAI(model="gpt-4o").configurable_fields(
     )
 )
 # llm = OpenAI(model="gpt-3.5-turbo")
-llm = OpenAI(model="gpt-4o").configurable_fields(
+llm = OpenAI(model="gpt-4o", temperature=0.7).configurable_fields(
     temperature=ConfigurableField(
         id="llm_temperature",
         name="LLM Temperature",

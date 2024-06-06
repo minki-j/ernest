@@ -26,4 +26,4 @@ def to_role_content_tuples(messages: list[Message]):
 def messages_to_string(
     messages: list[Message], ai_role: str = "ai", user_role: str = "user"
 ):
-    return "\n".join([f"({ai_role if msg.role.value == "ai" else user_role}) {msg.content}" for msg in messages])
+    return "\n".join([f"({ai_role if msg.role.value == "assistant" else user_role}) {msg.content}" for msg in messages])

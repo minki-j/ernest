@@ -37,23 +37,23 @@ Check if the message is cut off in the middle of a sentence. If the message comp
 
 Examples:
 
-message: "I am going to the"
-judgement: True
-
 message: "I am going to the store."
-judgement: False
+is_cut_off: False
 
 message: "hi"
-judgement: False
+is_cut_off: False
 
 message: "hi, how are you?"
-judgement: False
+is_cut_off: False
 
-message: "I was at the store wit"
-judgement: True
+message: "I just had a hair cut and don't like it"
+is_cut_off: False
 
 message: "Yes I did. I showed a picture of hair style that I wanted. But the hairstylist glanced it and kind of ignored me."
-judgement: False
+is_cut_off: False
+
+message: "I was at the store wit"
+is_cut_off: True
 
 
 Now it's your turn
@@ -62,15 +62,16 @@ message: {message}
 """
     )
 
-    chain = prompt | chat_model_openai_4o.with_structured_output(
-        IsMSGCutOff
-    ).with_config(configurable={"llm_temperature": 0})
+    chain = prompt | chat_model_openai_4o.with_config(
+        configurable={"llm_temperature": 0.1}
+    ).with_structured_output(IsMSGCutOff)
 
-    is_msg_complete = chain.invoke(
-        {
-            "message": messages_to_string(documents.review.messages[-1:])
-        }
-    )
+    user_message = documents.review.messages[-1].content
+    # add . if not present at the end of the string
+    if user_message[-1] != ".":
+        user_message += "."
+        
+    is_msg_complete = chain.invoke({"message": user_message})
     print("     judgement:", is_msg_complete.judgement)
 
     if is_msg_complete.judgement:
