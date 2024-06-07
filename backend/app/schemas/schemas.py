@@ -8,6 +8,7 @@ from typing import Any, List
 # ? Should I change this to pydantic BaseModel?
 # ? Pydantic provides built-in to_dict() method
 # ? But Pydantic requires an adjustment for MongoDB ObjectId
+
 class Base():
     def __init__(self) -> None:
         pass
@@ -70,8 +71,10 @@ class State(Base):
     instruction: StateItem
     missing_details: List[str]
     stories: List[str]
+    tournament: dict[str, Any]
 
     def __init__(self, **kwargs):
+        self.tournament = {}
         for key, value in kwargs.items():
             setattr(self, key, value)
 

@@ -21,6 +21,8 @@ from app.langchain.nodes.llm.pick import pick_best_missing_detail
 from app.langchain.nodes.non_llm.predefined_reply import reply_for_incomplete_msg
 from app.langchain.conditional_edges.llm.check import is_msg_cut_off
 
+from app.langchain.subgraphs.utils.tournament import tournament
+
 g = StateGraph(StateType)
 g.set_entry_point("entry")
 
@@ -53,28 +55,16 @@ g.add_edge("find_missing_details", n(find_missing_detail_with_reply))
 g.add_edge("find_missing_details", n(find_missing_detail_from_customer_perspective))
 
 g.add_node(n(find_missing_detail_story_only), find_missing_detail_story_only)
-g.add_edge(n(find_missing_detail_story_only), n(pick_best_missing_detail))
+g.add_edge(n(find_missing_detail_story_only), n(tournament))
 
 g.add_node(n(find_missing_detail_with_reply), find_missing_detail_with_reply)
-g.add_edge(n(find_missing_detail_with_reply), n(pick_best_missing_detail))
+g.add_edge(n(find_missing_detail_with_reply), n(tournament))
 
 g.add_node(n(find_missing_detail_from_customer_perspective), find_missing_detail_from_customer_perspective)
-g.add_edge(n(find_missing_detail_from_customer_perspective), n(pick_best_missing_detail))
+g.add_edge(n(find_missing_detail_from_customer_perspective), n(tournament))
 
-g.add_node(n(pick_best_missing_detail), pick_best_missing_detail)
-g.add_edge(n(pick_best_missing_detail), n(generate_reply))
-
-# g.add_edge(n(pick_best_missing_detail), n(reflect_picked_missing_detail))
-# g.add_conditional_edges(
-#     n(reflect_picked_missing_detail),
-#     reflect_picked_missing_detail,
-#     to_path_map(
-#         [
-#             n(generate_reply),
-#             "find_missing_details",
-#         ]
-#     ),
-# )
+g.add_node(n(tournament), tournament)
+g.add_edge(n(tournament), n(generate_reply))
 
 g.add_node(n(generate_reply), generate_reply)
 g.add_edge(n(generate_reply), n(decide_reply_type))

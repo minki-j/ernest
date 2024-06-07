@@ -48,7 +48,7 @@ def reply_to_message(
 
     documents = langgraph_app.invoke(
         {"documents": documents},
-        {"recursion_limit": 10},
+        {"recursion_limit": 20},
     )["documents"]
 
     was_update_successful = update_document(documents)

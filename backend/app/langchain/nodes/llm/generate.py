@@ -121,7 +121,7 @@ DO NOT USE THE SAME REACTION OR QUESTION TWICE!!
 
     candidate_reply_message = chain.invoke(
         {
-            "missing_detail": documents.state.chosen_missing_detail,
+            "missing_detail": documents.state.tournament["players"],
             "customer_info": bios_to_string(documents.user.bios),
         }
     )
