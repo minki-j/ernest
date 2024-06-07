@@ -5,7 +5,7 @@ def generate_last_msg(state: dict[str, Documents]):
     print("\n==>> end_conversation")
     documents = state["documents"]
 
-    documents.state.reply_message = "Thank you for your time. Have a great day!"
+    documents.state.reply_message = f" The interview session has ended. Thank you for your time {documents.user.name}. You can check the result in the <review> tab. Have a great day! 😊"
 
     return {"documents": documents}
 

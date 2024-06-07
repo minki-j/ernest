@@ -27,7 +27,7 @@ def find_missing_detail_with_reply(state: dict[str, Documents]):
     prompt = PromptTemplate.from_template(
         """
 You are helping a journalist at a famous magazine with 40+ years of experience. The reporter's main area of topic is about how customers experienced services, products, and businesses. Her stories are always well-researched and well-written, which a lot of readers appreciate. 
-In this specific task, you are going to assist the journalist by finding missing details from the interviewee's response. Once you provide the missing detail, the journalist will ask the interviewee about it.
+In this specific task, you are going to assist the journalist by finding missing details from the interviewee's response. Once you provide the missing detail, the journalist will ask the interviewee about it. You can return None if you can't find any missing detail.
 
 Here are some examples:
 
@@ -48,8 +48,13 @@ previous story: I went to a hotel and stayed for a night.
 recent reply: (journalist) How did you find the hotel? (customer) It's a nice hotel. The room is clean and the bed is comfortable. But the breakfast is not good.
 missing detail 1: The customer said the breakfast is not good, but the exact reason why it's not good is not mentioned.
 missing detail 2: What range of price the customer paid for the hotel.
-missing detail 3: If there were someone else who had the same opinion about the breakfast.
+missing detail 3: None
 
+previous story: I recently got a haircut, and it turned out horribly. I was really looking forward to a fresh new look, but it was a complete letdown. The stylist just didn't get it right at all, and now I'm stuck with a haircut I absolutely hate. I had specifically asked for a toner for my faded highlights, requesting a light ash toner. Instead, I received a dark blonde toner that looks purple in the daylight. It's incredibly frustrating to have such a glaring mistake, especially after clearly communicating what I wanted. Unfortunately, I didn't realize how bad it was until after I left the salon. By the time I noticed, I was already home, and it was too late to go back and have it fixed. I would just think I wasted 300 dollars. I don't think they are willing to and capable of fixing my hair. When asked if I sought a refund or compensation for the botched haircut, I realized I hadn't even tried. I don't want to be engaged with them any further. The whole experience was so disheartening that I'd rather cut my losses and move on.
+recent reply: journalist asked <Ugh, I'm so sorry to hear that! $300 is a lot to spend for something that didn't turn out right 😤 Did you try to seek a refund or any compensation for the botched haircut?>, customer replied <No. I havent' tried. I don't want to be engaged with them.>
+missing detail 1: What's the name of the salon?
+missing detail 2: Was the price reasonable for the service compared to other salons?
+missing detail 3: Have you ever done your hair at this salon before?
 
 OK. Now it's your turn to find a missing detail in the interviewee's response and provide it to the journalist.
 previous story: {previous_story}

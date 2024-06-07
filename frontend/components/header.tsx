@@ -37,6 +37,14 @@ async function UserOrLogin() {
           </Button>
         )}
       </div>
+      <div className="flex items-center">
+        <Button variant="link" asChild className="-ml-2">
+          <Link href="/">Home</Link>
+        </Button>
+        <Button variant="link" asChild className="-ml-2">
+          <Link href="/reviews">Reviews</Link>
+        </Button>
+      </div>
     </>
   )
 }

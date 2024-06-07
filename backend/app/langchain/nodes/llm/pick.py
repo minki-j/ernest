@@ -16,7 +16,7 @@ from app.langchain.utils.converters import messages_to_string
 class BestTopic(BaseModel):
     """The topic that the customer care about the most."""
 
-    reason: str = Field(description="The reason why the detail is the best choice.")
+    reason: str = Field(description="The reason why the chosen detail is the best.")
     choice: int = Field(description="The index of the best choice.") 
 
 
@@ -28,12 +28,20 @@ def pick_best_missing_detail(state: dict[str, Documents]):
         """
 You are a potential customer seeking recommendations for a reliable vendor to purchase a specific product or service. You are speaking with someone who recently made a purchase from a vendor. Choose a topic to gain insights into their experience. Focus on the aspects that matter most to you, such as product quality, customer service, pricing, delivery time, or overall satisfaction. Keep in mind that you are just a regular customer, not a market researcher, so you should ask questions that are relevant to your needs and preferences.
 
+---
+Here are some exmaple:
+Latest conversation:
+Summarized story:
+Options:
+reason: 
+choice:
+___
+Now it's your turn
+
 Latest conversation: {conversation}
 Summarized story: {story}
-
-Options:
-{options}
-        """
+Options:n{options}
+"""
     )
 
     chain = prompt | chat_model_openai_4o.with_structured_output(BestTopic)
@@ -51,7 +59,7 @@ Options:
     best_topic = chain.invoke(
         {
             "story": documents.review.story,
-            "conversation": messages_to_string(documents.review.messages[-10:]),
+            "conversation": messages_to_string(documents.review.messages[-10:], ai_role="you", user_role="customer"),
             "options": indexed_options,
         }
     )

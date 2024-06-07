@@ -38,7 +38,8 @@ export async function getReviewsByUser(userId?: string | null){
         createdAt: review.created_at,
         userId: review.user_id,
         path: `/chat/${review._id}`,
-        messages: review.messages
+        messages: review.messages,
+        story: review.story
       }
     })
     // console.log('reviews: ', reviews);

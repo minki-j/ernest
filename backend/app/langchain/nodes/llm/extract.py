@@ -11,16 +11,22 @@ from app.langchain.common import llm, chat_model, output_parser, chat_model_open
 
 from langchain_core.pydantic_v1 import BaseModel, Field
 
+class Item(BaseModel):
+    """Extracted information from the conversation."""
+    title: str = Field(
+        description="A succint title/topic of the extracted information."
+    )
+    content: str = Field(
+        description="A detailed content of the extracted information. Only include what's in the given text"
+    )
+
 class Extracted(BaseModel):
     think_out_loud: str = Field(description="Think out loud which information you are going to extract with a valid reasoning.")
-    title: str = Field(description="A succint title/topic of the extracted information.")
-    content: str = Field(description="A detailed content of the extracted information. Only include what's in the given text")
+    items: list[Item] = Field(description="A list of extracted items.")
 
 def extract_user_info_from_reply(state: dict[str, Documents]):
     print("\n==>> extract_user_info_from_reply")
     documents = state["documents"]
-
-    reply = documents.review.messages[-1].content
 
     prompt = PromptTemplate.from_template(
         """
@@ -28,18 +34,16 @@ You are a professional counsellor listening to a user's {sentiment} experience f
 
 Here are some examples:
 
-user message: "I went to a restaurant yesterday and had a pasta. Pasta is my favorite food."
+conversation: (counsellor) What did you do yesterday? (customer) I went to a restaurant yesterday and had a pasta. Pasta is my favorite food.
 think out loud: "OK there are two informations in the message. The user went to a restaurant yesterday and had a pasta. The user also mentioned that pasta is their favorite food. The fact that the user went to a restaurant yesterday is not important for the future conversation since it's just one-time event. But the fact that pasta is their favorite food is important to remember for the future conversation because it is a user's preference that doesn't change often."
-title: "User's favorite food"
-content: "Pasta"
+[{title: "User's favorite food", content: "Pasta"}]
 
-user message: "I wanted to have my dog get a regular checkup by a vet. I went to "Buddy Clinic" and the vet was very friendly."
+conversation: (counsellor) Why are you upset? What happened? (customer) I wanted to have my dog get a regular checkup by a vet. I went to "Buddy Clinic" and the vet was very friendly.
 think out loud: "OK there are two informations in the message. The user wanted to have their dog get a regular checkup by a vet. The user went to "Buddy Clinic" and the vet was very friendly. The fact that the user wanted to have their dog get a regular checkup by a vet is not important for the future conversation since it's just a contextual information for this specific scenario. But the fact that the user went to "Buddy Clinic" and the vet was very friendly is important to remember for the future conversation because it is a user's opinion about the vet."
-title: "User's experince at "Buddy Clinic"
-content: "The vet was very friendly"
+[{title: "User's experince at "Buddy Clinic", content: "The vet was very friendly"}]
 
 OK. Now it's your turn:
-user message: {reply}"""
+conversation: {conversation}"""
     )
 
     structured_chat_model = chat_model_openai_4o.with_structured_output(Extracted)
@@ -47,8 +51,12 @@ user message: {reply}"""
     extracted = chain.invoke(
         {
             "sentiment": "negative",
-            "vendor_type": "veterinarian",
-            "reply": reply,
+            "vendor_type": "hair salon",
+            "conversation": messages_to_string(
+                documents.review.messages[-2:],
+                ai_role="counseller",
+                user_role="customer",
+            ),
         }
     )
     print(f"    title: {extracted.title}")

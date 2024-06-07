@@ -1,4 +1,4 @@
-from app.schemas.schemas import Message
+from app.schemas.schemas import Message, Bio
 
 
 def to_path_map(node_names):
@@ -26,4 +26,9 @@ def to_role_content_tuples(messages: list[Message]):
 def messages_to_string(
     messages: list[Message], ai_role: str = "ai", user_role: str = "user"
 ):
-    return "\n".join([f"({ai_role if msg.role.value == "assistant" else user_role}) {msg.content}" for msg in messages])
+    return ", ".join([f"{ai_role+" asked" if msg.role.value == "assistant" else user_role + " replied"} <{msg.content}>" for msg in messages])
+
+def bios_to_string(
+        bios: list[Bio]
+):
+    return ", ".join([bio.title + ": " + bio.content for bio in bios])
