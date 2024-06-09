@@ -28,6 +28,8 @@ def what_stage_of_chat(state: dict[str, Documents]):
     elif end_conversation:
         print("     : end")
         return "end_of_chat"
+    elif documents.review.vendor_id is None:
+        return "ask_vendor_info"
     else:
         print("     : middle")
         return "middle_of_chat"

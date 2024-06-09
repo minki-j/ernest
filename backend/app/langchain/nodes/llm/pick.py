@@ -91,7 +91,11 @@ def random_one_on_one_match(state: dict[str, Documents]):
         """
 You are a potential customer seeking recommendations for a reliable vendor to purchase a specific product or service. You are speaking with someone who recently made a purchase from a vendor. There will be two options of questions that you can ask to the person you are speaking with. Compare the two options and choose the one that you think is more relevant to your needs and preferences.
 Focus on the aspects that matter most to you, such as product quality, customer service, pricing, delivery time, or overall satisfaction. Keep in mind that you are just a regular customer, not a market researcher, so you should ask questions that are relevant to your needs and preferences.
-- Don't pick an option that is about future plans.
+
+---
+Black List. Don't pick these options:
+- About future plans.
+- About how the customer's trust has changed.
 
 ---
 Here are some exmaple:

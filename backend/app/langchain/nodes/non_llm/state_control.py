@@ -17,11 +17,13 @@ def sync_state_and_doc(state: dict[str, Documents]):
     print("\n==>> sync_state_and_doc")
     documents = state["documents"]
 
-    documents.add(
-        Message(
-            role=Role.AI,
-            content=documents.state.reply_message,
+    if hasattr(documents.state, "reply_message"):
+        documents.add(
+            Message(
+                role=Role.AI,
+                content=documents.state.reply_message,
+            )
         )
-    )
+    # ! Need to handle UI type messages
 
     return {"documents": documents}

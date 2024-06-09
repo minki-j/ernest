@@ -72,6 +72,7 @@ class State(Base):
     missing_details: List[str]
     stories: List[str]
     tournament: dict[str, Any]
+    ui_type: str
 
     def __init__(self, **kwargs):
         self.tournament = {}
@@ -217,14 +218,14 @@ class User(Base):
 class Vendor(Base):
     _id: ObjectId
     name: str
-    location: str
+    address: str
     created_at: str
     updated_at: str
     review_ids: list[ObjectId]
 
     def __init__(self, **kwargs):
         self.name = None
-        self.location = None
+        self.address = None
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
         self.review_ids = []

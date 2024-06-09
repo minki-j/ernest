@@ -37,23 +37,26 @@ Check if the message is cut off in the middle of a sentence. If the message comp
 
 Examples:
 
-message: "I am going to the store."
+message: I am going to the store.
 is_cut_off: False
 
-message: "hi"
+message: hi
 is_cut_off: False
 
-message: "hi, how are you?"
+message: hi, how are you?
 is_cut_off: False
 
-message: "I just had a hair cut and don't like it"
+message: I just had a hair cut and don't like it
 is_cut_off: False
 
-message: "Yes I did. I showed a picture of hair style that I wanted. But the hairstylist glanced it and kind of ignored me."
+message: Yes I did. I showed a picture of hair style that I wanted. But the hairstylist glanced it and kind of ignored me.
 is_cut_off: False
 
-message: "I was at the store wit"
+message: I was at the store wit
 is_cut_off: True
+
+message: I just finished my first intership day and so disappointed...
+is_cut_off: False
 
 
 Now it's your turn
@@ -67,10 +70,10 @@ message: {message}
     ).with_structured_output(IsMSGCutOff)
 
     user_message = documents.review.messages[-1].content
-    # add . if not present at the end of the string
+    # add . if not present at the end of the string to make the test more robust
     if user_message[-1] != ".":
         user_message += "."
-        
+
     is_msg_complete = chain.invoke({"message": user_message})
     print("     judgement:", is_msg_complete.judgement)
 

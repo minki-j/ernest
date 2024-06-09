@@ -89,7 +89,7 @@ def generate_reply(state: dict[str, Documents]):
     print("\n==>> generate_reply")
     documents = state["documents"]
 
-    messages = to_role_content_tuples(documents.review.messages[-8:])
+    messages = to_role_content_tuples(documents.review.messages[-10:])
     prompt = ChatPromptTemplate.from_messages(
         [
             (
@@ -107,10 +107,10 @@ The missing detail you need to ask: {missing_detail}
 
 DO NOT FORGET THAT YOU CAN USE EMOJIES IF NEEDED!!
 DO USE A COLLOQUIAL LANGUAGE TO MAKE THE CUSTOMER MORE COMFORTABLE!!
-DO NOT USE THE SAME REACTION OR QUESTION TWICE!!
+DO NOT USE THE SAME REACTION OR QUESTION IN THE MESSAGE!!
 DO NOT FORGET THAT YOU CAN USE EMOJIES IF NEEDED!!
 DO USE A COLLOQUIAL LANGUAGE TO MAKE THE CUSTOMER MORE COMFORTABLE!!
-DO NOT USE THE SAME REACTION OR QUESTION TWICE!!
+DO NOT USE THE SAME REACTION OR QUESTION IN THE MESSAGE!!
 """,
             ),
             *messages,

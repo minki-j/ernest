@@ -21,10 +21,11 @@ class ReplyType(Enum):
 class DecideReplyType(BaseModel):
     """The type of reply the customer has given in the interview."""
 
+    reason: str = Field(description="The reason why the chosen type is the best.")
     type: ReplyType = Field(description="The type of reply the journalist will give.")
 
 
-# ! This doesn't really work. It always returns reaction_and_question
+# ! This doesn't work well. It always returns reaction_and_question. Unreliably returns reaction_only.
 def decide_reply_type(state: dict[str, Documents]):
     print("\n==>> decide_reply_type")
     documents = state["documents"]
@@ -33,6 +34,7 @@ def decide_reply_type(state: dict[str, Documents]):
         """
         As a seasoned journalist with 40+ years of experience at a prestigious magazine, you specialize in customer experience with services, products, and businesses. Your stories are always thoroughly researched and well-written, a fact well-appreciated by many readers.
         In the upcoming task, you will need to decide whether to merely respond to the customer's reply, solely ask questions without any reaction, or both respond and ask questions. Consider the context of the message and choose the most natural one.
+
         Tip: When the user's last message seems like that the user will continue explaining about the detail, just react only without asking a new question. 
         
         previous conversation: {conversation}

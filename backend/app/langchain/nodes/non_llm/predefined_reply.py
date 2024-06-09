@@ -40,3 +40,11 @@ def reply_for_incomplete_msg(state: dict[str, Documents]):
     documents.state.reply_message = message
 
     return {"documents": documents}
+
+def ask_vendor_info(state: dict[str, Documents]):
+    print("\n==>> ask_vendor_info")
+    documents = state["documents"]
+
+    documents.state.ui_type = "pick_vendor"
+
+    return {"documents": documents}

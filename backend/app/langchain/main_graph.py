@@ -4,23 +4,16 @@ from langgraph.graph import END, StateGraph
 from langchain_core.runnables import RunnablePassthrough
 
 from app.langchain.schema import StateType
-from app.langchain.conditional_edges.non_llm.simple_check import what_stage_of_chat
-from app.langchain.conditional_edges.llm.check import is_msg_cut_off
-from app.langchain.nodes.non_llm.state_control import sync_state_and_doc
-from app.langchain.nodes.non_llm.predefined_reply import reply_for_incomplete_msg
+
 from app.langchain.utils.converters import to_path_map
 
 from app.langchain.subgraphs.start_of_chat.graph import start_of_chat
 from app.langchain.subgraphs.middle_of_chat.graph import middle_of_chat
 from app.langchain.subgraphs.end_of_chat.graph import end_of_chat
+from app.langchain.subgraphs.ask_vendor_info.graph import ask_vendor_info
 
-# Features to add
-# todo: export the report of the review
-# todo: Add quantitaive version of question
-# todo: conceal PII when asked
-# todo: discard previous answer when asked
-# todo: add local llama3 model
-
+from app.langchain.conditional_edges.non_llm.simple_check import what_stage_of_chat
+from app.langchain.nodes.non_llm.state_control import sync_state_and_doc
 
 g = StateGraph(StateType)
 g.add_node("entry", RunnablePassthrough())
@@ -32,6 +25,7 @@ g.add_conditional_edges(
     to_path_map(
         [
             n(start_of_chat),
+            n(ask_vendor_info),
             n(middle_of_chat),
             n(end_of_chat),
         ]
@@ -40,6 +34,7 @@ g.add_conditional_edges(
 )
 
 g.add_node(n(start_of_chat), start_of_chat)
+g.add_node(n(ask_vendor_info), ask_vendor_info)
 g.add_node(n(middle_of_chat), middle_of_chat)
 g.add_node(n(end_of_chat), end_of_chat)
 

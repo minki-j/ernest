@@ -192,3 +192,15 @@ def add_new_user(user: dict):
     user_id = user_collection.insert_one(user)
 
     return user_id
+
+
+def add_vendor(vendor: dict):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    vendor_collection = db.get_collection('vendor')
+    result = vendor_collection.insert_one(vendor)
+    vendor_id = result.inserted_id
+    print(f"==>> vendor_id: {vendor_id}")
+    
+    return {vendor_id}

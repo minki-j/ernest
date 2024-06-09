@@ -154,8 +154,9 @@ def find_missing_detail_from_customer_perspective(state: dict[str, Documents]):
 
     prompt = PromptTemplate.from_template(
         """
-Imagine you are the customer in the story and conversation. You are being interviewed by a journalist at a famous magazine with 40+ years of experience. The reporter's main area of topic is about how customers experienced services, products, and businesses. Her stories are always well-researched and well-written, which a lot of readers appreciate.
-What question would you like the journalist to ask you about the story and conversation? Again, IMAGINE that you are the customer in the story and conversation.
+Imagine you are the customer in the provided story and conversation. You are being interviewed by a seasoned journalist from a renowned magazine, known for its 40+ years of delivering insightful and well-researched articles. The journalist specializes in exploring customer experiences with various services, products, and businesses, and her stories are highly regarded by readers.
+Based on your experience in the story and conversation, what question would you like the journalist to ask you?
+
 story: {story}
 conversation: {conversation}
 """

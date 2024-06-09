@@ -15,6 +15,7 @@ from app.utils.mongodb import (
     fetch_reviews_by_user_id,
     delete_reviews_by_user_id,
     add_new_user,
+    add_vendor
 )
 
 from app.langchain.main_graph import langgraph_app
@@ -97,3 +98,20 @@ def add_new_user(
     }
     result = add_new_user(user)
     return result
+
+@router.post("/addVendor")
+def addVendor(
+    token= Depends(get_current_user),
+    body= Body(...),
+):
+    print("===>API CALL: db/addVendor")
+    print("    : body ->", body)
+
+    vendor = {
+        "name": body.get("name"),
+        "email": body.get("address"),
+        "created_at": datetime.now(),
+        "review_ids": [body.get("reviewID")],
+    }
+    vendor_id = add_vendor(vendor)
+    return vendor_id

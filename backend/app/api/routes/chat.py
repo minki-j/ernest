@@ -43,8 +43,6 @@ def reply_to_message(
             )
         )
 
-    # TODO: not working with Document class as a state type
-    # print(langgraph_app.get_graph().draw_ascii())
 
     documents = langgraph_app.invoke(
         {"documents": documents},
@@ -61,5 +59,7 @@ def reply_to_message(
         if hasattr(documents.state, "reply_message")
         else "No reply provided"
     )
+    ui_type = documents.state.ui_type if hasattr(documents.state, "ui_type") else "message"
+    print(f"==>> ui_type: {ui_type}")
 
-    return {"message": reply}
+    return {"uiType": ui_type, "message": reply}
