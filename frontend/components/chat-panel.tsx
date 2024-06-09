@@ -87,7 +87,7 @@ export function ChatPanel({
         </div> */}
 
         {messages?.length >= 2 ? (
-          <div className="flex h-12 items-center justify-center">
+          <div className="flex h-fit items-center justify-center">
             <div className="flex space-x-2">
               {id && title ? (
                 <>

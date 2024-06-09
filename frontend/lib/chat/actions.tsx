@@ -25,8 +25,10 @@ import {
   UserMessage,
   BotMessage
 } from '@/components/stocks/message'
+import {PickVendor} from '@/components/stocks/pick-vendor'
 import { Review, Message } from '@/lib/types'
 import { auth } from '@/auth'
+
 
 let api_url =process.env['API_URL']
 
@@ -56,6 +58,8 @@ async function submitUserMessage(message: string, reviewId: string) {
   formData.append('user_msg', message)
   
   const url = api_url + 'chat/invoke'
+  // ! I need to use tool to use StreamUI function from Vercel AI SDK
+  // ! However, I'm not calling LLM call here. I'm just calling a FastAPI endpoint.
   const res = await fetch(url, {
     method: 'POST',
     body: formData
@@ -68,11 +72,24 @@ async function submitUserMessage(message: string, reviewId: string) {
   }
 
   const data = await res.json()
+  // console.log("======= data =======\n", data);
+
+  type ComponentMapType = {
+    [key: string]: JSX.Element
+  }
+
+  const componentMap: ComponentMapType = {
+    message: <BotMessage content={data.message} />,
+    pick_vendor: <PickVendor />
+  }
+
+  
+  const display = componentMap[data.uiType]
 
   return {
     id: nanoid(),
     role: 'ai',
-    display: <BotMessage content={data.message} />
+    display: display
   }
 }
 
