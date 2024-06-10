@@ -91,9 +91,7 @@ export async function saveReview(chat: Review) {
   
   const session = await auth()
 
-  if (session && session.user) {
-    const session = await auth()
-    
+  if (session && session.user) {    
     const url = api_url + 'db/saveReview'
 
     const body = JSON.stringify(chat)
@@ -227,4 +225,39 @@ export async function getMissingKeys() {
   return keysRequired
     .map(key => (process.env[key] ? '' : key))
     .filter(key => key !== '')
+}
+
+
+export async function add_vendor(name: string, address: string, reviewID: string) {
+  console.log('add_vendor');
+
+  const session = await auth()
+
+  if (session && session.user) {
+
+    const url = api_url + 'db/addVendor'
+    const body = JSON.stringify({ name, address, reviewID})
+
+    try {
+      console.log("calling api: ", url);
+      
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + process.env['API_TOKEN']
+        },
+        body: body
+      }).then(res => res.json())
+
+      console.log('add_vendor with id: ', res.vendor_id)
+      return res
+    } catch (error) {
+      console.error('add_vendor error:\n', error)
+      return []
+    }
+    
+  } else {
+    return
+  }
 }

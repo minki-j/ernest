@@ -19,24 +19,55 @@ import {
   CardTitle
 } from '@/components/ui/card'
 
-import { VendorPicker } from '@/components/stocks/vendor-picker'
+import { GoogleMapPicker } from '@/components/stocks/google-map-picker'
+
+import { add_vendor } from '@/app/actions'
 
 export function PickVendor() {
+  const [placeState, setPlaceState] =
+    useState<google.maps.places.PlaceResult | null>(null)
+  const [isVendorSelected, setIsVendorSelected] = useState(false)
+
+  const url = new URL(window.location.href)
+  const pathnameParts = url.pathname.split('/')
+  const reviewID =
+    pathnameParts[pathnameParts.length - 1]
+
+  const btnHandler = () => {
+    console.log('Button Clicked')
+    if (placeState && placeState.name && placeState.formatted_address) {
+      setIsVendorSelected(true)
+      add_vendor(placeState.name, placeState.formatted_address, reviewID)
+    }
+  }
+
   return (
-
-    //   <Card>
-    //     <CardHeader>
-    //       <CardTitle>Pick a vendor</CardTitle>
-    //       {/* <CardDescription>Card Description</CardDescription> */}
-    //     </CardHeader>
-    //     <CardContent></CardContent>
-    //     <CardFooter>
-    //       <Button className="w-full">
-    //         <CheckIcon className="mr-2 size-4" /> Select
-    //       </Button>
-    //     </CardFooter>
-    //   </Card>
-      <VendorPicker />
-
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          {isVendorSelected ? 'Selected Vendor' : 'Please pick a vendor'}
+        </CardTitle>
+        {/* <CardDescription>Card Description</CardDescription> */}
+      </CardHeader>
+      <CardContent>
+        {isVendorSelected ? (
+          <div>
+            <p>Name: {placeState?.name}</p>
+            <p>Address: {placeState?.formatted_address}</p>
+          </div>
+        ) : (
+          <GoogleMapPicker setPlaceState={setPlaceState} />
+        )}
+      </CardContent>
+      <CardFooter>
+        {isVendorSelected ? (
+          <div></div>
+        ) : (
+          <Button className="w-full" onClick={btnHandler}>
+            <CheckIcon className="mr-2 size-4" /> Select
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
   )
 }
