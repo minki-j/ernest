@@ -1,0 +1,41 @@
+{
+    "entities": [
+        {
+            "name": "vendor",
+            "set_type_as": "",
+            "property_columns": [
+                "vendor_name",
+                "address"
+            ],
+            "description": ""
+        },
+        {
+            "name": "review",
+            "set_type_as": "",
+            "property_columns": [
+                "content",
+                "rating",
+                "published_at_date"
+            ],
+            "description": ""
+        }
+    ],
+    "relations": [
+        {
+            "name": "about",
+            "description": "",
+            "property_columns": [
+                "negative",
+                "positive"
+            ]
+        }
+    ],
+    "patterns": [
+        {
+            "head": "review",
+            "relation": "about",
+            "tail": "vendor",
+            "description": "A review about a vendor"
+        }
+    ]
+}
