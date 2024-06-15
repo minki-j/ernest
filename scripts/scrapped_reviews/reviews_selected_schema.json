@@ -22,7 +22,7 @@
     ],
     "relations": [
         {
-            "name": "about",
+            "name": "in_review",
             "description": "",
             "property_columns": [
                 "negative",
@@ -32,9 +32,9 @@
     ],
     "patterns": [
         {
-            "head": "review",
-            "relation": "about",
-            "tail": "vendor",
+            "head": "vendor",
+            "relation": "in_review",
+            "tail": "review",
             "description": "A review about a vendor"
         }
     ]
