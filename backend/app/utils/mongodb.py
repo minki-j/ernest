@@ -63,26 +63,28 @@ def fetch_document(review_id: str, user_id: str) -> Documents:
 def update_document(documents: Documents) -> bool:
     client = MongoClient(uri)
 
-    user_id = documents.user._id
-    vendor_id = documents.vendor._id
-    review_id = documents.review._id
-
     db = client.get_database('ernest')
 
-    user_collection= db.get_collection('user')
-    result = user_collection.update_one({"_id": user_id}, {"$set": documents.user.to_dict()})
-    if not result:
-        raise ValueError(f"User with id {user_id} update failed")
+    if hasattr(documents, 'user'):
+        user_id = documents.user._id
+        user_collection= db.get_collection('user')
+        result = user_collection.update_one({"_id": user_id}, {"$set": documents.user.to_dict()})
+        if not result:
+            raise ValueError(f"User with id {user_id} update failed")
     
-    vendor_collection= db.get_collection('vendor')
-    result = vendor_collection.update_one({"_id": vendor_id}, {"$set": documents.vendor.to_dict()})
-    if not result:
-        raise ValueError(f"Vendor with id {vendor_id} update failed")
+    if hasattr(documents, 'vendor'):
+        vendor_id = documents.vendor._id
+        vendor_collection= db.get_collection('vendor')
+        result = vendor_collection.update_one({"_id": vendor_id}, {"$set": documents.vendor.to_dict()})
+        if not result:
+            raise ValueError(f"Vendor with id {vendor_id} update failed")
 
-    review_collection= db.get_collection('review')
-    result = review_collection.update_one({"_id": review_id}, {"$set": documents.review.to_dict()})
-    if not result:
-        raise ValueError(f"Review with id {review_id} update failed")
+    if hasattr(documents, 'review'):
+        review_id = documents.review._id
+        review_collection= db.get_collection('review')
+        result = review_collection.update_one({"_id": review_id}, {"$set": documents.review.to_dict()})
+        if not result:
+            raise ValueError(f"Review with id {review_id} update failed")
 
     return True
 
@@ -193,14 +195,39 @@ def add_new_user(user: dict):
 
     return user_id
 
-
 def add_vendor(vendor: dict):
     client = MongoClient(uri)
 
     db = client.get_database('ernest')
     vendor_collection = db.get_collection('vendor')
-    result = vendor_collection.insert_one(vendor)
-    vendor_id = result.inserted_id
+    review_id_to_update = vendor.get("review_ids")[0]
+    if "review_ids" in vendor:
+        first_review_id = vendor["review_ids"][0]
+        del vendor["review_ids"]
+    else:
+        first_review_id = None
+
+    update_operation = {
+        "$setOnInsert": vendor
+    }
+    if first_review_id is not None:
+        update_operation["$addToSet"] = {"review_ids": first_review_id}
+
+    result = vendor_collection.find_one_and_update(
+        {"name": vendor["name"], "address": vendor["address"]},
+        update_operation, 
+        upsert=True, 
+        return_document=ReturnDocument.AFTER
+    )
+    print(f"==>> result: {result}")
+    vendor_id = result.get("_id")
     print(f"==>> vendor_id: {vendor_id}")
+
+    # add vendor_id to the review
+    review_collection = db.get_collection('review')
+    review_collection.update_one(
+        {"_id": review_id_to_update},
+        {"$set": {"vendor_id": str(vendor_id)}}
+    )
     
-    return {vendor_id}
+    return vendor_id

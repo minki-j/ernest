@@ -19,7 +19,15 @@ from app.utils.mongodb import (
 )
 
 from app.langchain.main_graph import langgraph_app
-from app.schemas.schemas import Message, Role
+from app.schemas.schemas import (
+    Message,
+    Role,
+    Review,
+    User,
+    Vendor,
+    State,
+    ParallelState,
+)
 from app.langchain.schema import Documents
 
 
@@ -105,13 +113,14 @@ def addVendor(
     body= Body(...),
 ):
     print("===>API CALL: db/addVendor")
-    print("    : body ->", body)
 
     vendor = {
         "name": body.get("name"),
-        "email": body.get("address"),
+        "address": body.get("address"),
         "created_at": datetime.now(),
         "review_ids": [body.get("reviewID")],
     }
+    print("    : reviewID ->", body.get("reviewID"))
     vendor_id = add_vendor(vendor)
-    return vendor_id
+
+    return str(vendor_id)

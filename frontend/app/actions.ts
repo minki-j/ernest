@@ -239,8 +239,6 @@ export async function add_vendor(name: string, address: string, reviewID: string
     const body = JSON.stringify({ name, address, reviewID})
 
     try {
-      console.log("calling api: ", url);
-      
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -250,7 +248,6 @@ export async function add_vendor(name: string, address: string, reviewID: string
         body: body
       }).then(res => res.json())
 
-      console.log('add_vendor with id: ', res.vendor_id)
       return res
     } catch (error) {
       console.error('add_vendor error:\n', error)

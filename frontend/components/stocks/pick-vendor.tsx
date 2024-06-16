@@ -33,11 +33,12 @@ export function PickVendor() {
   const reviewID =
     pathnameParts[pathnameParts.length - 1]
 
-  const btnHandler = () => {
-    console.log('Button Clicked')
+  const btnHandler = async () => {
+
     if (placeState && placeState.name && placeState.formatted_address) {
       setIsVendorSelected(true)
-      add_vendor(placeState.name, placeState.formatted_address, reviewID)
+
+      const vendor_id = await add_vendor(placeState.name, placeState.formatted_address, reviewID)
     }
   }
 
@@ -45,7 +46,7 @@ export function PickVendor() {
     <Card>
       <CardHeader>
         <CardTitle>
-          {isVendorSelected ? 'Selected Vendor' : 'Please pick a vendor'}
+          {isVendorSelected ? 'Selected Vendor' : 'Which place did you go?'}
         </CardTitle>
         {/* <CardDescription>Card Description</CardDescription> */}
       </CardHeader>
