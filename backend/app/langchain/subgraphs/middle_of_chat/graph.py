@@ -39,12 +39,13 @@ g.add_conditional_edges(
     ),
 )
 
+dev = False
 
 g.add_node(n(extract), RunnablePassthrough())
 # g.add_node(n(extract), extract) # TODO: implement "extract" subgraph
 g.add_conditional_edges(
     n(extract),
-    lambda x: "graph_agent",  # always go to graph_agent
+    lambda x: "graph_agent" if dev else "gather_context",  # always go to graph_agent
     to_path_map(
         [
             n(gather_context),

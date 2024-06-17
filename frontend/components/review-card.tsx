@@ -23,6 +23,18 @@ export function ReviewCard({
   content,
   created_at
 }: ReviewCardProps) {
+  
+  function splitDateOrString(input: string | Date): string {
+    if (typeof input === 'string') {
+      // input is a string, so we can safely call split
+      return input.split('T')[0]
+    } else {
+      // input is a Date, so we need to convert it to a string first
+      // For example, using toISOString() to get a string representation
+      return input.toISOString().split('T')[0]
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -33,7 +45,7 @@ export function ReviewCard({
         <p>{content}</p>
       </CardContent>
       <CardFooter>
-        <p>{created_at.split("T")[0]}</p>
+        <p>{splitDateOrString(created_at)}</p>
       </CardFooter>
     </Card>
   )

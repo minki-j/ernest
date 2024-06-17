@@ -19,7 +19,11 @@ import { Session } from '@/lib/types'
 //   }
 // }
 
-export default async function ReviewPage({ params }) {
+interface Params {
+  id: string
+}
+
+export default async function ReviewPage({ params }: { params: Params }) {
   console.log('ReviewPage: ', params)
 
   const session = (await auth()) as Session
@@ -28,8 +32,5 @@ export default async function ReviewPage({ params }) {
     redirect(`/login?next=/chat/${params.id}`)
   }
 
-  return (
-    <>
-    </>
-  )
+  return <></>
 }

@@ -52,15 +52,15 @@ export const GoogleMapPicker: React.FC<GoogleMapPickerProps> = ({ setPlaceState 
   );
 };
 
-interface MapClickEvent {
-  detail: {
-    latLng: google.maps.LatLng
-    placeId: string
-  }
-}
+// interface MapClickEvent {
+//   detail: {
+//     latLng: google.maps.LatLng
+//     placeId: string
+//   }
+// }
 
 const handleMapClick = (
-  e: MapClickEvent,
+  e: any,
   setSelectedPlace: React.Dispatch<
     React.SetStateAction<google.maps.places.PlaceResult | null>
   >
