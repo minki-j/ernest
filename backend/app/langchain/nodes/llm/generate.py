@@ -131,3 +131,55 @@ DO NOT USE THE SAME REACTION OR QUESTION IN THE MESSAGE!!
     documents.state.candidate_reply_message = candidate_reply_message
 
     return {"documents": documents}
+
+
+class Reply(BaseModel):
+    """A reply from a journalist to a customer."""
+
+    reaction: str = Field(description="The reaction part of the reply")
+    question: str = Field(description="The question part of the reply")
+
+def generate_reply_refering_other_reviews(state: dict[str, Documents]):
+    print("\n==>> generate_reply_refering_other_reviews")
+    documents = state["documents"]
+
+    other_reviews = documents.state["topic_types_from_KG"]
+    relevant_reviews = """["""
+    for review in other_reviews:
+        if review["type"] == "hair_cut":
+            relevant_reviews += f'"{review["content"]}",'
+    relevant_reviews += """]"""
+    messages = messages_to_string(documents.review.messages[-4:])
+    prompt = ChatPromptTemplate.from_messages(
+        [
+            (
+                "system",
+                """You are going to validate the user's experience using the following reviews from other customers.
+
+                ---
+                examples
+
+                relevant reviews: ["I had a really bad experience at a salon since the stylist cut my hair too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.", "I went to a salon to get curtain bangs, but the stylist cut them so short that they're impossible to style. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon."]
+                user messages: I asked to cut my bang but the stylist cut them too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.
+                reaction: "Oh that's so unfortunate."
+                reply: "I've heard from 2 other customers that they had a similar experience at the salon. They also had their hair cut too short and were really disappointed. They had to wait for their hair to grow back and find another salon. It's really unfortunate that this happened to you too. I hope you find a better salon next time."
+
+                ---
+                Now it's your turn!
+                relevant reviews: {relevant_reviews}
+                """,
+            ),
+            *messages,
+        ]
+    )
+
+    chain = prompt | chat_model_openai_4o.with_structured_output(Reply)
+
+    reply = chain.invoke(
+        {
+            "relevant_reviews": relevant_reviews,
+        }
+    )
+
+    documents.state.reply_message = reply.reaction + " " + reply.question
+    return {"documents": documents}

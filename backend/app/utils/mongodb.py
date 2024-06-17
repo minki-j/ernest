@@ -42,7 +42,7 @@ def fetch_document(review_id: str, user_id: str) -> Documents:
     vendor_id = review.get("vendor_id", ObjectId())
     vendor_collection: Vendor = db.get_collection('vendor')
     vendor = vendor_collection.find_one_and_update(
-            {"_id": vendor_id},
+            {"_id": ObjectId(vendor_id)},
             {"$setOnInsert": Vendor().to_dict()}, 
             upsert=True, 
             return_document=ReturnDocument.AFTER
@@ -196,13 +196,15 @@ def add_new_user(user: dict):
     return user_id
 
 def add_vendor(vendor: dict):
-    client = MongoClient(uri)
+    review_id_to_update = vendor.get("review_ids")[0]
 
+    client = MongoClient(uri)
     db = client.get_database('ernest')
     vendor_collection = db.get_collection('vendor')
-    review_id_to_update = vendor.get("review_ids")[0]
+
     if "review_ids" in vendor:
         first_review_id = vendor["review_ids"][0]
+        # remove review_ids from vendor to prevent conflicts with the update operation(setOnInsert & addToSet)
         del vendor["review_ids"]
     else:
         first_review_id = None
@@ -219,9 +221,8 @@ def add_vendor(vendor: dict):
         upsert=True, 
         return_document=ReturnDocument.AFTER
     )
-    print(f"==>> result: {result}")
+
     vendor_id = result.get("_id")
-    print(f"==>> vendor_id: {vendor_id}")
 
     # add vendor_id to the review
     review_collection = db.get_collection('review')

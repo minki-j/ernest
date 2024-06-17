@@ -87,10 +87,11 @@ def delete_reviews_by_user(
     result = delete_reviews_by_user_id(user_id)
     return result
 
+
 @router.post("/addNewUser")
-def add_new_user(
-    token= Depends(get_current_user),
-    user= Body(...),
+def addNewUser(
+    token=Depends(get_current_user),
+    user=Body(...),
 ):
     print("===>API CALL: db/addNewUser")
     print("    : user ->", user)
@@ -107,6 +108,7 @@ def add_new_user(
     result = add_new_user(user)
     return result
 
+
 @router.post("/addVendor")
 def addVendor(
     token= Depends(get_current_user),
@@ -120,7 +122,7 @@ def addVendor(
         "created_at": datetime.now(),
         "review_ids": [body.get("reviewID")],
     }
-    print("    : reviewID ->", body.get("reviewID"))
+    
     vendor_id = add_vendor(vendor)
 
     return str(vendor_id)

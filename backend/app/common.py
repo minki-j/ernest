@@ -21,6 +21,7 @@ image = (
         "pygraphviz",
         "varname==0.13.1",
         "grandalf",
+        "neo4j"
     )
     .run_commands("pip install --upgrade fastapi pydantic")
 )

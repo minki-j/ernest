@@ -9,6 +9,7 @@ from app.langchain.utils.converters import to_path_map
 from app.langchain.nodes.llm.generate import generate_reply
 from app.langchain.subgraphs.middle_of_chat.gather_context.graph import gather_context
 from app.langchain.subgraphs.middle_of_chat.extract.graph import extract
+from app.langchain.subgraphs.middle_of_chat.graph_agent.graph import graph_agent
 from app.langchain.nodes.llm.find import (
     find_missing_detail_story_only,
     find_missing_detail_with_reply,
@@ -41,7 +42,21 @@ g.add_conditional_edges(
 
 g.add_node(n(extract), RunnablePassthrough())
 # g.add_node(n(extract), extract) # TODO: implement "extract" subgraph
-g.add_edge(n(extract), n(gather_context))
+g.add_conditional_edges(
+    n(extract),
+    lambda x: "graph_agent",  # always go to graph_agent
+    to_path_map(
+        [
+            n(gather_context),
+            n(graph_agent),
+        ]
+    ),
+)
+# g.add_edge(n(extract), n(gather_context))
+# g.add_edge(n(extract), n(graph_agent))
+
+g.add_node(n(graph_agent), graph_agent)
+g.add_edge(n(graph_agent), END)
 
 g.add_node(n(gather_context), gather_context)
 g.add_edge(n(gather_context), n(update_story))

@@ -21,6 +21,8 @@ web_app.include_router(api_router)
         Secret.from_name("Monogo DB connection password"),
         Secret.from_name("my-twilio-secret"),
         Secret.from_name("langsmith"),
+        Secret.from_name("my-neo4j-secret"),
+        Secret.from_name("my-pinecone-secret"),
     ],
     volumes={"/ernest": vol},
     timeout=600,  # 10 minutes
@@ -29,5 +31,6 @@ web_app.include_router(api_router)
 @asgi_app()
 def fastapi_asgi():
     import os
+
     print("Starting FastAPI app")
     return web_app
