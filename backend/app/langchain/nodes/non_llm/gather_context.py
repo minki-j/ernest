@@ -31,7 +31,7 @@ def gather_vendor_info(state: dict[str, Documents]):
 
     vendor = documents.vendor
 
-    vendor_info = f"Name: {vendor.name}\nLocation: {vendor.location}"
+    vendor_info = f"Name: {vendor.name}\nAddress: {vendor.address}"
 
     documents.parallel_state.pending_items.append(
         StateItem(attribute="context", key=n(vendor_info), value=vendor_info)

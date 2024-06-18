@@ -4,6 +4,7 @@ from datetime import datetime
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from app.langchain.schema import Documents
+from app.schemas.schemas import State, Role, Message, StateItem
 from app.langchain.utils.converters import to_role_content_tuples
 from app.langchain.common import llm, chat_model, output_parser, chat_model_openai_4o
 
@@ -78,7 +79,7 @@ recent reply: {recent_reply}
     return {"documents": documents}
 
 
-class Reply(BaseModel):
+class ReactionQuestion(BaseModel):
     """A reply from a journalist to a customer."""
 
     reaction: str = Field(description="The reaction part of the reply")
@@ -117,7 +118,7 @@ DO NOT USE THE SAME REACTION OR QUESTION IN THE MESSAGE!!
         ]
     )
 
-    chain = prompt | chat_model_openai_4o.with_structured_output(Reply)
+    chain = prompt | chat_model_openai_4o.with_structured_output(ReactionQuestion)
 
     candidate_reply_message = chain.invoke(
         {
@@ -128,27 +129,82 @@ DO NOT USE THE SAME REACTION OR QUESTION IN THE MESSAGE!!
 
     print("    : reaction ->", candidate_reply_message.reaction)
     print("    : question ->", candidate_reply_message.question)
-    documents.state.candidate_reply_message = candidate_reply_message
+
+    documents.parallel_state.pending_items.append(
+        StateItem(
+            attribute="candidate_reply_message",
+            key="reaction",
+            value=candidate_reply_message.reaction,
+        )
+    )
+    documents.parallel_state.pending_items.append(
+        StateItem(
+            attribute="candidate_reply_message",
+            key="question",
+            value=candidate_reply_message.question,
+        )
+    )
 
     return {"documents": documents}
 
 
 class Reply(BaseModel):
-    """A reply from a journalist to a customer."""
+    """A reply from the AI to a customer."""
 
-    reaction: str = Field(description="The reaction part of the reply")
-    question: str = Field(description="The question part of the reply")
+    content: str = Field(description="The content of the reply")
+
+class TopicType(BaseModel):
+    """A topic type from the KG."""
+
+    type: str = Field(description="The type of the topic")
 
 def generate_reply_refering_other_reviews(state: dict[str, Documents]):
     print("\n==>> generate_reply_refering_other_reviews")
     documents = state["documents"]
 
     other_reviews = documents.state["topic_types_from_KG"]
+    types_of_topics_from_other_reviews = [review["type"] for review in other_reviews]
+
+    # pick a relevant type from the user message
+
+    pick_a_relevant_type_prompt = PromptTemplate.from_template(
+        """
+From the following topic types, pick the one that is most relevant to the user's message. If none of them are relevant, select 'none'.
+
+---
+topic types: {types_of_topics_from_other_reviews}
+message: {user_message}"""
+    )
+    pick_type_chain = (
+        pick_a_relevant_type_prompt
+        | chat_model_openai_4o.with_structured_output(TopicType)
+    )
+    selected_topic_type = pick_type_chain.invoke(
+        {
+            "types_of_topics_from_other_reviews": types_of_topics_from_other_reviews,
+            "user_message": messages_to_string(documents.review.messages[-2:]),
+        }
+    ).type
+
+    if selected_topic_type == "none":
+        documents.parallel_state.pending_items.append(
+            StateItem(
+                attribute="candidate_reply_message",
+                key="referring_to_kg",
+                value=reply.content,
+            )
+        )
+        return {"documents": documents}
+
+    if selected_topic_type not in types_of_topics_from_other_reviews:
+        raise ValueError("The selected topic type is not in the list of topic types.")
+
     relevant_reviews = """["""
     for review in other_reviews:
-        if review["type"] == "hair_cut":
+        if review["type"] == selected_topic_type:
             relevant_reviews += f'"{review["content"]}",'
     relevant_reviews += """]"""
+    print(f"    : relevant_reviews: {relevant_reviews}")
     messages = messages_to_string(documents.review.messages[-4:])
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -161,7 +217,6 @@ def generate_reply_refering_other_reviews(state: dict[str, Documents]):
 
                 relevant reviews: ["I had a really bad experience at a salon since the stylist cut my hair too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.", "I went to a salon to get curtain bangs, but the stylist cut them so short that they're impossible to style. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon."]
                 user messages: I asked to cut my bang but the stylist cut them too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.
-                reaction: "Oh that's so unfortunate."
                 reply: "I've heard from 2 other customers that they had a similar experience at the salon. They also had their hair cut too short and were really disappointed. They had to wait for their hair to grow back and find another salon. It's really unfortunate that this happened to you too. I hope you find a better salon next time."
 
                 ---
@@ -181,5 +236,14 @@ def generate_reply_refering_other_reviews(state: dict[str, Documents]):
         }
     )
 
-    documents.state.reply_message = reply.reaction + " " + reply.question
+    print("    : reply referring_to_kg ->", reply.content)
+
+    documents.parallel_state.pending_items.append(
+        StateItem(
+            attribute="candidate_reply_message",
+            key="referring_to_kg",
+            value=reply.content,
+        )
+    )
+
     return {"documents": documents}

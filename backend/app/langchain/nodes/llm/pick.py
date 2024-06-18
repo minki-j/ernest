@@ -49,11 +49,11 @@ Options: {options}
     chain = prompt | chat_model_openai_4o.with_structured_output(BestTopic)
 
     options = (
-        documents.state.missing_details["story_and_reply"]
-        + documents.state.missing_details["story_only"]
-        + documents.state.missing_details["customer_perspective"]
+        documents.state.missing_details.get("story_and_reply", [])
+            + documents.state.missing_details.get("story_only", [])
+            + documents.state.missing_details.get("customer_perspective", [])
     )
-    print("options:", options)
+    print("     - Options: ", options)
     indexed_options = "\n".join(f"{i}. {element}" for i, element in enumerate(options))
 
     best_topic = chain.invoke(
@@ -66,10 +66,11 @@ Options: {options}
         }
     )
 
-    print("     best missing detail:", options[best_topic.choice])
-    print("     reason:", best_topic.reason)
+    print("     - Best: ", options[best_topic.choice])
+    print("     - Reason: ", best_topic.reason)
 
-    documents.state.chosen_missing_detail = options[best_topic.choice]
+    # players key contains the winning options
+    documents.state.tournament["players"] = options[best_topic.choice]
 
     return {"documents": documents}
 

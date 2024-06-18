@@ -23,10 +23,10 @@ g.add_edge("entry", n(gather_vendor_info))
 g.add_node(n(gather_user_info), gather_user_info)
 g.add_node(n(gather_vendor_info), gather_vendor_info)
 
-g.add_edge(n(gather_user_info), "rendezvous")
-g.add_edge(n(gather_vendor_info), "rendezvous")
-
 g.add_node("rendezvous", RunnablePassthrough())
+
+g.add_edge([n(gather_user_info), n(gather_vendor_info)], "rendezvous")
+
 g.add_edge("rendezvous", END)
 
 gather_context = g.compile()

@@ -22,9 +22,6 @@ g.add_edge(n(get_topics_for_vendor), n(generate_reply_refering_other_reviews))
 g.add_node(
     n(generate_reply_refering_other_reviews), generate_reply_refering_other_reviews
 )
-g.add_edge(n(generate_reply_refering_other_reviews), "rendezvous")
-
-g.add_node("rendezvous", RunnablePassthrough())
-g.add_edge("rendezvous", END)
+g.add_edge(n(generate_reply_refering_other_reviews), END)
 
 graph_agent = g.compile()

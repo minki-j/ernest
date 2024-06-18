@@ -2,6 +2,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_openai import ChatOpenAI, OpenAI
 from langchain_core.runnables import ConfigurableField
 
+USE_TOURNAMENT = False
+USE_IS_MSG_CUT_OFF = False
 
 output_parser = StrOutputParser()
 

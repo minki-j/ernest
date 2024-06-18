@@ -8,6 +8,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 from app.langchain.schema import Documents
 from app.schemas.schemas import State, Role, Message, StateItem
 
+import time
 
 def get_topics_for_vendor(state: dict[str, Documents]):
     print("\n==>> get_topics_for_vendor")

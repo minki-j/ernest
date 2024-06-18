@@ -18,6 +18,7 @@ class ReplyType(Enum):
     question_only = "question_only"
     reaction_and_question = "reaction_and_question"
 
+
 class DecideReplyType(BaseModel):
     """The type of reply the customer has given in the interview."""
 
@@ -44,7 +45,7 @@ def decide_reply_type(state: dict[str, Documents]):
     )
 
     chain = prompt | chat_model_openai_4o.with_structured_output(DecideReplyType)
-
+    
     reply_type = chain.invoke(
         {
             "conversation": messages_to_string(
@@ -52,17 +53,24 @@ def decide_reply_type(state: dict[str, Documents]):
                 ai_role="journalist",
                 user_role="customer",
             ),
-            "possible_reaction": documents.state.candidate_reply_message.reaction,
-            "possible_question": documents.state.candidate_reply_message.question,
+            "possible_reaction": documents.state.candidate_reply_message["reaction"],
+            "possible_question": documents.state.candidate_reply_message["question"],
         }
     )
     print("    reply_type:", reply_type.type.value)
 
     if reply_type.type == ReplyType.reaction_only:
-        documents.state.reply_message = documents.state.candidate_reply_message.reaction
+        documents.state.reply_message = documents.state.candidate_reply_message["reaction"]
     elif reply_type.type == ReplyType.question_only:
-        documents.state.reply_message = documents.state.candidate_reply_message.question
+        documents.state.reply_message = documents.state.candidate_reply_message["question"]
     elif reply_type.type == ReplyType.reaction_and_question:
-        documents.state.reply_message = f"{documents.state.candidate_reply_message.reaction} {documents.state.candidate_reply_message.question}"
+        documents.state.reply_message = f"{documents.state.candidate_reply_message["reaction"]} {documents.state.candidate_reply_message["question"]}"
+
+    if documents.state.candidate_reply_message["referring_to_kg"]:
+        documents.state.reply_message = (
+            documents.state.reply_message
+            + "\n"
+            + documents.state.candidate_reply_message["referring_to_kg"]
+        )
 
     return {"documents": documents}
