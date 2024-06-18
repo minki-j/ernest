@@ -12,13 +12,8 @@ import {
   AdvancedMarkerRef,
 } from '@vis.gl/react-google-maps';
 
-console.log("%".repeat(100));
-console.log('API_URL', process.env['API_URL'])
-console.log('GOOGle', process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)
-console.log("%".repeat(100));
-
 const API_KEY =
-  process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY //Must use NEXT_PUBLIC_ prefix
 
 if (!API_KEY) {
   throw new Error('No GOOGLE_MAPS_API_KEY provided')
