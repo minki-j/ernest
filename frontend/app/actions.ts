@@ -10,7 +10,7 @@ import { type Review } from '@/lib/types'
 let api_url =process.env['API_URL']
 
 export async function getReviewsByUser(userId?: string | null){
-  console.log('getReviewsByUser');  
+  console.log('getReviewsByUser', userId);  
   if (!userId) {
     console.error('getReviewsByUser error: userId is undefined')
     return []
@@ -24,6 +24,10 @@ export async function getReviewsByUser(userId?: string | null){
         Authorization: 'Bearer ' + process.env['API_TOKEN']
       }
     }).then(res => {
+      if (res.status==404){
+        console.log("No reviews found for user", userId)
+        return []
+      }
       if (!res.ok) {
         console.error('getReviewsByUser error:\n', res)
         return []

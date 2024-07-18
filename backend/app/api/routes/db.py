@@ -15,7 +15,8 @@ from app.utils.mongodb import (
     fetch_reviews_by_user_id,
     delete_reviews_by_user_id,
     add_new_user,
-    add_vendor
+    authenticate_user,
+    add_vendor,
 )
 
 from app.langchain.main_graph import langgraph_app
@@ -95,18 +96,48 @@ def addNewUser(
 ):
     print("===>API CALL: db/addNewUser")
     print("    : user ->", user)
-    user_id = user.get("user_id")
-    user = fetch_user(user_id)
+    user_id =  user.get("user_id")
+    name =  user.get("name")
+    email =  user.get("email")
+
+    if any (v is None for v in [user_id, name, email]):
+        raise HTTPException(status_code=400, detail="Invalid user data")
+
+    user = fetch_user(
+        user_id=user_id,
+        name=name,
+        email=email,
+    )
     if user:
         raise HTTPException(status_code=400, detail="User already exists")
     user = {
         "user_id": user_id,
-        "name": user.get("name"),
-        "email": user.get("email"),
+        "name": name,
+        "email": email,
         "created_at": datetime.now(),
     }
     result = add_new_user(user)
     return result
+
+
+@router.post("/loginByEmail")
+def loginByEmail(
+    token=Depends(get_current_user),
+    credential=Body(...),
+):
+    print("===>API CALL: db/loginByEmail")
+    email = credential.get("email")
+    password = credential.get("password")
+
+    if any (v is None for v in [email, password]):
+        raise HTTPException(status_code=400, detail="Received None for email or password")
+                            
+    user = authenticate_user(email=email, password=password)
+    
+    if user:
+        return True
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.post("/addVendor")

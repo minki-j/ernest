@@ -1,7 +1,7 @@
 'use client'
 
 import { useFormState, useFormStatus } from 'react-dom'
-import { signup } from '@/app/signup/actions'
+// import { signup } from '@/app/signup/actions'
 import Link from 'next/link'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
@@ -13,16 +13,16 @@ export default function SignupForm() {
   const router = useRouter()
   const [result, dispatch] = useFormState(signup, undefined)
 
-  useEffect(() => {
-    if (result) {
-      if (result.type === 'error') {
-        toast.error(getMessageFromCode(result.resultCode))
-      } else {
-        toast.success(getMessageFromCode(result.resultCode))
-        router.refresh()
-      }
-    }
-  }, [result, router])
+  // useEffect(() => {
+  //   if (result) {
+  //     if (result.type === 'error') {
+  //       toast.error(getMessageFromCode(result.resultCode))
+  //     } else {
+  //       toast.success(getMessageFromCode(result.resultCode))
+  //       router.refresh()
+  //     }
+  //   }
+  // }, [result, router])
 
   return (
     <form

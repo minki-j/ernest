@@ -195,6 +195,19 @@ def add_new_user(user: dict):
 
     return user_id
 
+def authenticate_user(email: str, password: str):
+    client = MongoClient(uri)
+
+    db = client.get_database('ernest')
+    user_collection = db.get_collection('user')
+    user = user_collection.find_one(
+        {"email": email, "password": password}
+    )
+    print("user: ", user)
+    if user is None:
+        return False
+    return True
+
 def add_vendor(vendor: dict):
     review_id_to_update = vendor.get("review_ids")[0]
 

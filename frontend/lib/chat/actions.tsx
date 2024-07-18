@@ -58,8 +58,8 @@ async function submitUserMessage(message: string, reviewId: string) {
   formData.append('user_msg', message)
   
   const url = api_url + 'chat/invoke'
-  // ! I need to use tool to use StreamUI function from Vercel AI SDK
-  // ! However, I'm not calling LLM call here. I'm just calling a FastAPI endpoint.
+  
+  // ! I need to use tool to use StreamUI function from Vercel AI SDK.. But I couldn't since I'm not calling LLM call here. I'm using FastAPI endpoints that calls LLMs.
   const res = await fetch(url, {
     method: 'POST',
     body: formData
@@ -93,6 +93,7 @@ async function submitUserMessage(message: string, reviewId: string) {
   }
 }
 
+//AI State refers to the state of the application in a serialisable format that will be used on the server and can be shared with the language model.
 export type AIState = {
   reviewId: string
   messages: Message[]
@@ -119,7 +120,6 @@ export const AI = createAI<AIState, UIState>({
 
     if (session && session.user) {
       const aiState = getAIState()
-      // console.log("======= aiState =======\n", aiState);
 
       if (aiState) {
         const uiState = getUIStateFromAIState(aiState)

@@ -163,6 +163,10 @@ def generate_reply_refering_other_reviews(state: dict[str, Documents]):
     documents = state["documents"]
 
     other_reviews = documents.state["topic_types_from_KG"]
+    
+    if not other_reviews:
+        return {"documents": documents}
+
     types_of_topics_from_other_reviews = [review["type"] for review in other_reviews]
 
     # pick a relevant type from the user message
@@ -197,7 +201,9 @@ message: {user_message}"""
         return {"documents": documents}
 
     if selected_topic_type not in types_of_topics_from_other_reviews:
-        raise ValueError("The selected topic type is not in the list of topic types.")
+        raise ValueError(
+            f"The selected topic type {selected_topic_type} is not in the list of topic types: {types_of_topics_from_other_reviews}"
+        )
 
     relevant_reviews = """["""
     for review in other_reviews:
