@@ -38,7 +38,7 @@ const customProvider = CredentialsProvider({
     } else {
       console.log("log in successful from backend. Sending user")
       const user: User = {
-        id: 'some-unique-id', 
+        id: 'user_id_not_used', 
         email: credentials.email as string,
       }
       return user
@@ -74,7 +74,7 @@ async function addUserToBackend(user: User) {
       Authorization: `Bearer ${process.env.API_TOKEN}`
     },
     body: JSON.stringify({
-      user_id: user.id,
+      user_id: crypto.randomUUID(),
       name: user.name,
       email: user.email
     })

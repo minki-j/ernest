@@ -5,7 +5,7 @@ import { formatDate } from '@/lib/utils'
 import { getSharedChat } from '@/app/actions'
 import { ChatList } from '@/components/chat-list'
 import { FooterText } from '@/components/footer'
-import { AI, UIState, getUIStateFromAIState } from '@/lib/chat/actions'
+import { AI, UIState, convertSateAI2UI } from '@/lib/chat/actions'
 
 export const runtime = 'edge'
 export const preferredRegion = 'home'
@@ -33,7 +33,7 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound()
   }
 
-  const uiState: UIState = getUIStateFromAIState(chat)
+  const uiState: UIState = convertSateAI2UI(chat)
 
   return (
     <>

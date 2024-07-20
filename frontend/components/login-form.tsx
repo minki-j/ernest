@@ -10,7 +10,6 @@ export default function LoginForm() {
   const [state, formAction] = useFormState(loginAction, null)
 
   useEffect(() => {
-    console.log('LoginForm state: ', state)
     if (state) {
       if (state.status !== 201) {
         toast.error(state.message)

@@ -25,18 +25,47 @@ import {
   UserMessage,
   BotMessage
 } from '@/components/stocks/message'
-import {PickVendor} from '@/components/stocks/pick-vendor'
+import { PickVendor } from '@/components/stocks/pick-vendor'
 import { Review, Message } from '@/lib/types'
 import { auth } from '@/auth'
 
+let api_url = process.env['API_URL']
 
-let api_url =process.env['API_URL']
+async function submitFirstAIMessage(reviewId: string, message: string) {
+  // Add the first AI message to the backend
+  const session = await auth()
+  console.log('submitFirstAIMessage session: ', session)
+
+  if (!session || !session.user) return
+
+  if (!session.user.email) {
+    throw new Error('User email is not found in the session')
+  }
+
+  const formData = new FormData()
+  formData.append('user_email', session.user.email)
+  formData.append('review_id', reviewId)
+  formData.append('message', message)
+
+  const url = api_url + 'chat/add_ai_first_message'
+
+  const res = await fetch(url, {
+    method: 'POST',
+    body: formData
+  })
+  console.log('submitFirstAIMessage res: ', res)
+
+  if (!res.ok) {
+    throw new Error(`HTTP error! status: ${res.status}`)
+  }
+  return
+}
 
 async function submitUserMessage(message: string, reviewId: string) {
   'use server'
 
   const aiState = getMutableAIState<typeof AI>()
-  
+
   aiState.update({
     ...aiState.get(),
     messages: [
@@ -44,7 +73,7 @@ async function submitUserMessage(message: string, reviewId: string) {
       {
         id: nanoid(),
         role: 'user',
-        content: message,
+        content: message
       }
     ]
   })
@@ -56,16 +85,15 @@ async function submitUserMessage(message: string, reviewId: string) {
   formData.append('user_id', session.user.id)
   formData.append('review_id', reviewId)
   formData.append('user_msg', message)
-  
+
   const url = api_url + 'chat/invoke'
-  
+
   // ! I need to use tool to use StreamUI function from Vercel AI SDK.. But I couldn't since I'm not calling LLM call here. I'm using FastAPI endpoints that calls LLMs.
   const res = await fetch(url, {
     method: 'POST',
     body: formData
   })
   // console.log('res: ', res);
-  
 
   if (!res.ok) {
     throw new Error(`HTTP error! status: ${res.status}`)
@@ -83,7 +111,6 @@ async function submitUserMessage(message: string, reviewId: string) {
     pick_vendor: <PickVendor />
   }
 
-  
   const display = componentMap[data.uiType]
 
   return {
@@ -110,22 +137,38 @@ export const AI = createAI<AIState, UIState>({
     submitUserMessage
   },
   initialUIState: [],
-  initialAIState: { reviewId: nanoid(), messages: [] },
+  initialAIState: {
+    reviewId: nanoid(),
+    messages: []
+  },
+  // onGetUIState runs when?
   onGetUIState: async () => {
     'use server'
-    console.log('onGetUIState');
-    
+    console.log('onGetUIState')
 
     const session = await auth()
 
     if (session && session.user) {
       const aiState = getAIState()
 
-      if (aiState) {
-        const uiState = getUIStateFromAIState(aiState)
-        // console.log('uiState: ', uiState)
-
+      if (aiState.messages.length != 0) {
+        const uiState = convertSateAI2UI(aiState)
         return uiState
+      } else {
+        let message_content: string
+        if (session.user?.name) {
+          message_content = `Hi ${session.user.name}! Which company of product do you want to talk about today?`
+        } else {
+          message_content = "Hi I'm Ernest! What's your name?"
+        }
+        submitFirstAIMessage(aiState.reviewId, message_content)
+        return [
+          {
+            id: `${aiState.reviewId}-0`,
+            role: 'assistant',
+            display: <BotMessage key={nanoid()} content={message_content} />
+          }
+        ]
       }
     } else {
       return
@@ -134,15 +177,15 @@ export const AI = createAI<AIState, UIState>({
   // runs whenever the AI state is updated
   onSetAIState: async ({ state }) => {
     'use server'
-    // console.log('onSetAIState state: ', state);
+    console.log('onSetAIState')
   }
 })
 
-export const getUIStateFromAIState = (aiState: Review) => {
+export const convertSateAI2UI = (aiState: Review) => {
   return aiState.messages
     .filter(message => message.role !== 'system')
     .map((message, index) => ({
-      id: `${aiState.chatId}-${index}`,
+      id: `${aiState.reviewId}-${index}`,
       role: message.role,
       display:
         message.role === 'tool' ? (

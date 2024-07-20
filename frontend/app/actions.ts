@@ -56,10 +56,10 @@ export async function getReviewsByUser(userId?: string | null){
   }
 }
 
-export async function getReview(prarm_id?: string) {
-  console.log('getReview')
+export async function getReview(param_id?: string) {
+  console.log('getReview', param_id)
 
-  const url = api_url + 'db/getReview' + '?review_id=' + prarm_id
+  const url = api_url + 'db/getReview' + '?review_id=' + param_id
 
   try {
     const res = await fetch(url, {

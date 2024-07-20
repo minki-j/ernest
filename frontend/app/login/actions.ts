@@ -4,7 +4,6 @@ import { signIn } from '@/auth'
 
 
 export async function loginAction(prevState: any, formData: FormData) {
-  console.log("loginAction formData: ", formData)
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -21,6 +20,6 @@ export async function loginAction(prevState: any, formData: FormData) {
   }
 }
 
-export async function loginGoogleAction(prevState: any, formData: FormData) {
+export async function loginGoogleAction(formData: FormData) {
   await signIn('google')
 }
