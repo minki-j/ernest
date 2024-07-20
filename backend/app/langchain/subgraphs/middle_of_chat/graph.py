@@ -106,4 +106,4 @@ g.add_edge(n(reply_for_incomplete_msg), END)
 middle_of_chat = g.compile()
 
 # with open("graph_imgs/middle_of_chat.png", "wb") as f:
-#     f.write(middle_of_chat.get_graph().draw_png())
+#     f.write(middle_of_chat.get_graph().draw_mermaid_png())

@@ -40,4 +40,4 @@ tournament = g.compile()
 
 
 # with open("graph_imgs/tournament.png", "wb") as f:
-#     f.write(tournament.get_graph().draw_png())
+#     f.write(tournament.get_graph().draw_mermaid_png())

@@ -45,6 +45,7 @@ def ask_vendor_info(state: dict[str, Documents]):
     print("\n==>> ask_vendor_info")
     documents = state["documents"]
 
-    documents.state.ui_type = "pick_vendor"
+    # documents.state.ui_type = "pick_vendor"
+    documents.state.reply_message  = "Before begin the interview, could you let me know which company or tool you are going to talk about?"
 
     return {"documents": documents}

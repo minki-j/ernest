@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^0.0.9",
+    "@auth/mongodb-adapter": "^3.4.1",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-dropdown-menu": "^2.0.6",
@@ -37,7 +38,7 @@
     "framer-motion": "^10.18.0",
     "geist": "^1.2.1",
     "googlemaps": "^1.12.0",
-    "mongodb": "^6.6.2",
+    "mongodb": "^6.8.0",
     "nanoid": "^5.0.4",
     "next": "14.2.3",
     "next-auth": "5.0.0-beta.4",

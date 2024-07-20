@@ -144,7 +144,7 @@ export const AI = createAI<AIState, UIState>({
   // onGetUIState runs when?
   onGetUIState: async () => {
     'use server'
-    console.log('onGetUIState')
+    // console.log('onGetUIState')
 
     const session = await auth()
 
@@ -177,7 +177,7 @@ export const AI = createAI<AIState, UIState>({
   // runs whenever the AI state is updated
   onSetAIState: async ({ state }) => {
     'use server'
-    console.log('onSetAIState')
+    // console.log('onSetAIState')
   }
 })
 

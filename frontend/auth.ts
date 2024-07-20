@@ -2,6 +2,9 @@ import NextAuth from 'next-auth'
 import { authConfig } from './auth.config'
 import Google from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
+import type { Adapter } from '@auth/core/adapters'
+import { MongoDBAdapter } from '@auth/mongodb-adapter'
+import clientPromise from './lib/mongodb'
 
 interface User {
   id: string
@@ -16,7 +19,10 @@ const customProvider = CredentialsProvider({
     email: { label: 'Email', type: 'text' },
     password: { label: 'Password', type: 'password' }
   },
-  authorize: async (credentials: Partial<Record<"email" | "password", unknown>>, request: Request): Promise<User | null> => {
+  authorize: async (
+    credentials: Partial<Record<'email' | 'password', unknown>>,
+    request: Request
+  ): Promise<User | null> => {
     const api_base = process.env.API_URL
     const endpoint = 'db/loginByEmail'
     const url = new URL(endpoint, api_base).toString()
@@ -36,10 +42,10 @@ const customProvider = CredentialsProvider({
     if (!response.ok) {
       return null
     } else {
-      console.log("log in successful from backend. Sending user")
+      console.log('log in successful from backend. Sending user')
       const user: User = {
-        id: 'user_id_not_used', 
-        email: credentials.email as string,
+        id: 'user_id_not_used',
+        email: credentials.email as string
       }
       return user
     }
@@ -48,39 +54,12 @@ const customProvider = CredentialsProvider({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  providers: [Google, customProvider],
-  callbacks: {
-    async signIn({ user, account, profile }) {
-      if (!account) {
-        return false
-      }
-      if (account.provider === 'google') {
-        await addUserToBackend(user)
-      }
-      return true
-    }
-  }
-})
-
-
-async function addUserToBackend(user: User) {
-  const api_base = process.env.API_URL
-  const endpoint = 'db/addNewUser'
-  const url = new URL(endpoint, api_base).toString()
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.API_TOKEN}`
-    },
-    body: JSON.stringify({
-      user_id: crypto.randomUUID(),
-      name: user.name,
-      email: user.email
+  adapter: <Adapter>(
+    MongoDBAdapter(clientPromise, {
+      databaseName: 'ernest',
+      collections: { Users: 'users' }
     })
-  })
-
-  if (!response.ok) {
-    console.error('Failed to add user to backend')
-  }
-}
+  ),
+  providers: [Google, customProvider],
+  session: { strategy: 'jwt' }
+})

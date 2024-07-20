@@ -10,7 +10,6 @@ from app.utils.mongodb import (
     fetch_document,
     update_document,
     delete_document,
-    fetch_user,
     fetch_review,
     fetch_reviews_by_user_id,
     delete_reviews_by_user_id,
@@ -95,29 +94,19 @@ def addNewUser(
     user=Body(...),
 ):
     print("===>API CALL: db/addNewUser")
-    print("    : user ->", user)
-    user_id =  user.get("user_id")
     name =  user.get("name")
     email =  user.get("email")
 
-    if any (v is None for v in [user_id, name, email]):
+    if any (v is None for v in [name, email]):
         raise HTTPException(status_code=400, detail="Invalid user data")
 
-    user = fetch_user(
-        user_id=user_id,
-        name=name,
-        email=email,
-    )
-    if user:
-        raise HTTPException(status_code=400, detail="User already exists")
     user = {
-        "user_id": user_id,
         "name": name,
         "email": email,
         "created_at": datetime.now(),
     }
-    result = add_new_user(user)
-    return result
+    user_id = add_new_user(user)
+    return user_id
 
 
 @router.post("/loginByEmail")

@@ -14,32 +14,38 @@ from app.schemas.schemas import Review, User, Vendor, State, ParallelState
 
 uri = f"mongodb+srv://qmsoqm2:{os.environ["MONGO_DB_PASSWORD"]}@chathistory.tmp29wl.mongodb.net/?retryWrites=true&w=majority&appName=chatHistory"
 
-def fetch_document(review_id: str, user_id: str) -> Documents:
+def fetch_document(review_id: str, user_email: str) -> Documents:
+    print(f"\n==>> fetch_document", review_id, user_email)
     client = MongoClient(uri)
-
+    
     db = client.get_database('ernest')
     
-    user_collection = db.get_collection('user')
-    user = user_collection.find_one_and_update(
-            {"_id": user_id},
-            {"$setOnInsert": User().to_dict()}, 
-            upsert=True, 
-            return_document=ReturnDocument.AFTER
+    user_collection = db.get_collection('users')
+    user = user_collection.find_one(
+            {"email": user_email},
         )
     if user is None:
-        raise ValueError(f"User with id {user_id} not found")
+        raise ValueError(f"User with id {user_email} not found")
     
     review_collection: Review = db.get_collection('review')
     review = review_collection.find_one_and_update(
         {"_id": review_id},
-        {"$setOnInsert": Review(user_id=user_id).to_dict()},
+        {"$setOnInsert": Review(user_id=str(user["_id"])).to_dict()},
         upsert=True,
         return_document=ReturnDocument.AFTER
     )
     if review is None:
         raise ValueError(f"Review with id {review_id} not found")
 
-    vendor_id = review.get("vendor_id", ObjectId())
+    vendor_id = review.get("vendor_id", None)
+    if vendor_id is None:
+        return Documents(
+            review=Review(**review),
+            user=User(**user),
+            state=State(),
+            parallel_state=ParallelState()
+        )
+    
     vendor_collection: Vendor = db.get_collection('vendor')
     vendor = vendor_collection.find_one_and_update(
             {"_id": ObjectId(vendor_id)},
@@ -67,7 +73,7 @@ def update_document(documents: Documents) -> bool:
 
     if hasattr(documents, 'user'):
         user_id = documents.user._id
-        user_collection= db.get_collection('user')
+        user_collection= db.get_collection('users')
         result = user_collection.update_one({"_id": user_id}, {"$set": documents.user.to_dict()})
         if not result:
             raise ValueError(f"User with id {user_id} update failed")
@@ -99,36 +105,6 @@ def delete_document(review_id: str) -> bool:
 
     print(f"\n==>> delete_document ran successfully")
     return True
-
-
-def fetch_user(user_id: str, name: str, email: str):
-    client = MongoClient(uri)
-
-    db = client.get_database('ernest')
-    user_collection = db.get_collection('user')
-    user = user_collection.find_one_and_update(
-            {"_id": user_id},
-            {"$setOnInsert": User(name=name, email=email).to_dict()}, 
-            upsert=True, 
-            return_document=ReturnDocument.AFTER
-        )
-    
-    review_ids = user.get("review_ids", [])
-    reviews = []
-    if len(review_ids) != 0:
-        review_collection = db.get_collection('review')
-        for review_id in review_ids:
-            review = review_collection.find_one({"_id": review_id})
-            reviews.append(review)
-            if review is None:
-                raise ValueError(f"Review with id {review_id} not found")
-
-    result = {
-        "reviews": reviews,
-        "user": user
-    }
-
-    return json.dumps(result)
 
 def fetch_review(review_id: str):
     client = MongoClient(uri)
@@ -165,7 +141,7 @@ def save_review(review: dict):
         )
 
     user_id = review.get("user_id")
-    user_collection = db.get_collection('user')
+    user_collection = db.get_collection('users')
     user_collection.update_one(
         {"_id": user_id},
         {"$push": {"review_ids": review_id}}
@@ -180,7 +156,7 @@ def delete_reviews_by_user_id(user_id: str):
     review_collection = db.get_collection('review')
     review_collection.delete_many({"user_id": user_id})
 
-    user_collection = db.get_collection('user')
+    user_collection = db.get_collection('users')
     user_collection.update_one({"_id": user_id}, {"$unset": {"review_ids": []}})
 
     return True
@@ -190,20 +166,27 @@ def add_new_user(user: dict):
     client = MongoClient(uri)
 
     db = client.get_database('ernest')
-    user_collection = db.get_collection('user')
-    user_id = user_collection.insert_one(user)
+    user_collection = db.get_collection('users')
+    result = user_collection.update_one(
+        {"email": user["email"]},
+        {"$setOnInsert": User(**user).to_dict()},
+        upsert=True
+    )
 
-    return user_id
+    if result.upserted_id:
+        return str(result.upserted_id)
+    else:
+        return None 
 
 def authenticate_user(email: str, password: str):
     client = MongoClient(uri)
 
     db = client.get_database('ernest')
-    user_collection = db.get_collection('user')
+    user_collection = db.get_collection('users')
     user = user_collection.find_one(
         {"email": email, "password": password}
     )
-    print("user: ", user)
+    print("authenticate_user user: ", user)
     if user is None:
         return False
     return True

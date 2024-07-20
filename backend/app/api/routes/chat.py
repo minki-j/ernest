@@ -17,10 +17,33 @@ router = APIRouter()
 def root():
     return {"message": "/chat route working fine"}
 
+@router.post("/add_ai_first_message")
+def add_ai_first_message(
+    user_email: str = Form(...),
+    review_id: str = Form(...),
+    message: str = Form(default=""),
+):
+    print("-->add_ai_first_message")
+    documents: Documents = fetch_document(review_id, user_email)
+
+    documents.add(
+        Message(
+            role=Role.AI,
+            content=message,
+        )
+    )
+
+    was_update_successful = update_document(documents)
+
+    if not was_update_successful:
+        return {"message": "updating MongoDB failed"}
+
+    return {"message": "AI first message added"}
+
 
 @router.post("/invoke")
 def reply_to_message(
-    user_id: str = Form(...),
+    user_email: str = Form(...),
     review_id: str = Form(...),
     user_msg: str = Form(default=""),
     test: str = Form(default="false"),
@@ -33,7 +56,7 @@ def reply_to_message(
     if reset:
         delete_document(review_id)
 
-    documents: Documents = fetch_document(review_id, user_id)
+    documents: Documents = fetch_document(review_id, user_email)
 
     if user_msg != "":
         documents.add(

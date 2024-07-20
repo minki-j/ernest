@@ -9,7 +9,8 @@ from typing import Any, List
 # ? Pydantic provides built-in to_dict() method
 # ? But Pydantic requires an adjustment for MongoDB ObjectId
 
-class Base():
+
+class Base:
     def __init__(self) -> None:
         pass
 
@@ -44,12 +45,15 @@ class Base():
 
         return result_dict
 
+
 class ParallelState(Base):
     pending_items: list
+
     def __init__(self):
         self.pending_items = []
 
-class StateItem():
+
+class StateItem:
     attribute: str
     key: str
     value: Any
@@ -60,9 +64,9 @@ class StateItem():
         self.value = value
 
 
-class Reply():
-    reaction: str 
-    question: str 
+class Reply:
+    reaction: str
+    question: str
 
 
 class State(Base):
@@ -142,11 +146,11 @@ class Review(Base):
     messages: list[Message]
     reports: list[Report]
     created_at: str
-    state: State  
+    state: State
     story: str
     title: str
 
-    def __init__(self, user_id:str, **kwargs):
+    def __init__(self, user_id: str, **kwargs):
         self.user_id = user_id
         self.vendor_id = None
         self.payment_info = []
@@ -198,6 +202,7 @@ class User(Base):
     name: str
     pronouns: str
     email: str
+    password: str
     username: str
     created_at: str
     updated_at: str
@@ -205,8 +210,10 @@ class User(Base):
     bios: list[Bio]
 
     def __init__(self, **kwargs):
+        self._id = ObjectId()
         self.name = None
         self.email = None
+        self.password = None
         self.created_at = datetime.now().isoformat()
         self.updated_at = datetime.now().isoformat()
         self.review_ids = []

@@ -4,9 +4,12 @@ import { Session } from '@/lib/types'
 import { redirect } from 'next/navigation'
 
 export default async function LoginPage() {
+  console.log('LoginPage called');
+  
   const session = (await auth()) as Session
 
   if (session) {
+    console.log('LoginPage session exists:', session);
     redirect('/')
   }
 
