@@ -57,30 +57,33 @@ def root(
 
 @router.post("/getReview")
 def get_review(
-    token= Depends(get_current_user),
+    token=Depends(get_current_user),
     review_id: str = Query(...),
 ):
     print("===>API CALL: db/getReview called")
     review = fetch_review(review_id)
     return review
 
+
 @router.post("/getReviewsByUser")
 def get_review_by_user(
-    token= Depends(get_current_user),
+    token=Depends(get_current_user),
     user_id: str = Query(...),
 ):
     print("===>API CALL: db/getReviewsByUser")
-    try:    
+    try:
         review = fetch_reviews_by_user_id(user_id)
+        print(f"==>> review: {review}")
         return review
     except ValueError as e:
         error_msg = str(e)
         raise HTTPException(status_code=404, detail=error_msg)
 
+
 # delete all reviews for a user
 @router.post("/deleteReviewsByUser")
 def delete_reviews_by_user(
-    token= Depends(get_current_user),
+    token=Depends(get_current_user),
     user_id: str = Query(...),
 ):
     print("===>API CALL: db/deleteReviewsByUser")
@@ -94,10 +97,10 @@ def addNewUser(
     user=Body(...),
 ):
     print("===>API CALL: db/addNewUser")
-    name =  user.get("name")
-    email =  user.get("email")
+    name = user.get("name")
+    email = user.get("email")
 
-    if any (v is None for v in [name, email]):
+    if any(v is None for v in [name, email]):
         raise HTTPException(status_code=400, detail="Invalid user data")
 
     user = {
@@ -118,21 +121,23 @@ def loginByEmail(
     email = credential.get("email")
     password = credential.get("password")
 
-    if any (v is None for v in [email, password]):
-        raise HTTPException(status_code=400, detail="Received None for email or password")
-                            
+    if any(v is None for v in [email, password]):
+        raise HTTPException(
+            status_code=400, detail="Received None for email or password"
+        )
+
     user = authenticate_user(email=email, password=password)
-    
+
     if user:
-        return True
+        return {"_id": str(user["_id"]), "email": user["email"], "name": user["name"]}
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
 
 @router.post("/addVendor")
 def addVendor(
-    token= Depends(get_current_user),
-    body= Body(...),
+    token=Depends(get_current_user),
+    body=Body(...),
 ):
     print("===>API CALL: db/addVendor")
 
@@ -142,7 +147,7 @@ def addVendor(
         "created_at": datetime.now(),
         "review_ids": [body.get("reviewID")],
     }
-    
+
     vendor_id = add_vendor(vendor)
 
     return str(vendor_id)

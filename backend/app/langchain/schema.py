@@ -1,17 +1,5 @@
 from typing import Annotated, TypedDict
-from app.schemas.schemas import (
-    Message,
-    Payment,
-    Report,
-    Review,
-    State,
-    ParallelState,
-    User,
-    Vendor,
-    StateItem,
-    Bio,
-)
-
+from app.schemas.schemas import *
 
 class Documents():
     review: Review

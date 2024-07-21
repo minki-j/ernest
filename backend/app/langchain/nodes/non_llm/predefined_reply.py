@@ -10,7 +10,7 @@ def generate_last_msg(state: dict[str, Documents]):
     return {"documents": documents}
 
 
-def ask_name(state: dict[str, Documents]):
+def ask_user_name(state: dict[str, Documents]):
     print("\n==>> ask_name")
     documents = state["documents"]
 
@@ -44,8 +44,20 @@ def reply_for_incomplete_msg(state: dict[str, Documents]):
 def ask_vendor_info(state: dict[str, Documents]):
     print("\n==>> ask_vendor_info")
     documents = state["documents"]
+    user_name = documents.user.name
 
     # documents.state.ui_type = "pick_vendor"
-    documents.state.reply_message  = "Before begin the interview, could you let me know which company or tool you are going to talk about?"
+    documents.state.reply_message = f"Hi {user_name}! Before begin the interview, could you let me know which company or tool you are going to talk about?"
+
+    return {"documents": documents}
+
+
+def introduction(state: dict[str, Documents]):
+    print("\n==>> introduction")
+    documents = state["documents"]
+    user_name = documents.user.name
+    vendor_name = documents.vendor.name
+
+    documents.state.reply_message = f"Hi {user_name}! Thanks for sharing your valuable time and insight on {vendor_name} today. The interview would take roughly 10 mins. There are 5 pre-defined topics I would like to discuss with you regarding your experience with {vendor_name}. If you want to move on to the next topic at any point, just reply \"pass\". Are you ready to begin?"
 
     return {"documents": documents}

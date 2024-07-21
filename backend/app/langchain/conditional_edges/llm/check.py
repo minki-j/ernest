@@ -5,7 +5,7 @@ from enum import Enum
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
 from app.langchain.schema import Documents
-from app.schemas.schemas import State
+from app.schemas.schemas import Role
 from app.langchain.utils.converters import messages_to_string
 
 from app.langchain.nodes.llm.generate import generate_reply
@@ -15,6 +15,9 @@ from app.langchain.subgraphs.middle_of_chat.extract.graph import extract
 
 from app.langchain.conditional_edges.non_llm.simple_check import what_stage_of_chat
 from app.langchain.nodes.non_llm.predefined_reply import reply_for_incomplete_msg
+from app.langchain.nodes.non_llm.predefined_reply import ask_user_name
+from app.langchain.nodes.non_llm.predefined_reply import ask_vendor_info
+from app.langchain.nodes.non_llm.predefined_reply import introduction
 
 from app.langchain.common import llm, chat_model, output_parser, chat_model_openai_4o
 
@@ -81,3 +84,23 @@ message: {message}
         return n(reply_for_incomplete_msg)
     else:
         return n(extract)
+
+
+class ExtractedName(BaseModel):
+    name: str = Field(description="The extracted name of the user")
+
+def check_necessary_inquiries(state: dict[str, Documents]):
+    print("\n==>> check_necessary_inquiries")
+    documents = state["documents"]
+
+    is_named_extacted = documents.user.name
+    print(f"==>> is_named_extacted: {is_named_extacted}")
+    is_vendor_extracted = documents.vendor.name if hasattr(documents, 'vendor') else None
+    print(f"==>> is_vendor_extracted: {is_vendor_extracted}")
+
+    if not is_named_extacted:
+        return n(ask_user_name)
+    elif not is_vendor_extracted:
+        return n(ask_vendor_info)
+    else:
+        return n(introduction)

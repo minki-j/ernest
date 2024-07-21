@@ -4,12 +4,16 @@ from datetime import datetime
 
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 
-from app.langchain.schema import Documents, StateItem, Bio
+from app.langchain.schema import Documents, StateItem, Bio, Role
+
+from langchain_core import output_parsers, pydantic_v1
+
 from app.langchain.utils.converters import messages_to_string
 
 from app.langchain.common import llm, chat_model, output_parser, chat_model_openai_4o
 
 from langchain_core.pydantic_v1 import BaseModel, Field
+
 
 class Item(BaseModel):
     """Extracted information from the conversation."""
@@ -67,7 +71,77 @@ conversation: {conversation}"""
         Bio(title=extracted.title, content=extracted.content)
     )
 
+class Vendor(BaseModel):
+    """Leave None if not found"""
+
+    name: str
+    address: str
 
 def extract_vendor_info_from_reply(state: dict[str, Documents]):
-    print("\n==>> extract_info_from_vendor_reply")
+    print("\n==>> extract_vendor_info_from_reply")
     documents = state["documents"]
+
+    structured_chat_model = chat_model.with_structured_output(Vendor)
+
+    vendor = structured_chat_model.invoke(
+        documents.review.messages[-1].content
+    )
+
+    documents.vendor.name = vendor.name
+    documents.vendor.address = vendor.address
+
+    return {"documents": documents}
+
+
+class Name(BaseModel):
+    """Leave None if not found"""
+
+    fist_name: str
+    middle_name: str
+    last_name: str
+
+    def capitalize(self) -> str:
+        if self.fist_name is not None:
+            self.fist_name = self.fist_name.capitalize()
+        if self.middle_name is not None:
+            self.middle_name = self.middle_name.capitalize()
+        if self.last_name is not None:
+            self.last_name = self.last_name.capitalize()
+
+        return self
+
+
+def extract_user_name(state: dict[str, Documents]):
+    print("\n==>> extract_user_name")
+    documents = state["documents"]
+
+    structured_chat_model = chat_model.with_structured_output(Name)
+
+    user_name = structured_chat_model.invoke(
+        documents.review.messages[-1].content
+    ).capitalize()
+
+    documents.user.name = (
+        (user_name.fist_name + " " if user_name.fist_name else "")
+        + (user_name.middle_name + " " if user_name.middle_name else "")
+        + (user_name.last_name if user_name.last_name else "")
+    )
+
+    return {"documents": documents}
+
+def extract_necessary_info(state: dict[str, Documents]):
+    print("\n==>> extract_necessary_info")
+    documents = state["documents"]
+
+    last_AI_message = [
+        message.content
+        for message in documents.review.messages
+        if message.role == Role.AI
+    ][-1]
+
+    if "what's your name" in last_AI_message.lower():
+        return extract_user_name(state)
+    elif "which company or tool" in last_AI_message.lower():
+        return extract_vendor_info_from_reply(state)
+    else:
+        return state

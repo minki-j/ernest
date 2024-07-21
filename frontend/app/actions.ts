@@ -25,7 +25,7 @@ export async function getReviewsByUser(userId?: string | null){
       }
     }).then(res => {
       if (res.status==404){
-        console.log("No reviews found for user", userId)
+        console.log("No reviews found for user with id:", userId)
         return []
       }
       if (!res.ok) {

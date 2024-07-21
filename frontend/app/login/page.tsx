@@ -9,7 +9,7 @@ export default async function LoginPage() {
   const session = (await auth()) as Session
 
   if (session) {
-    console.log('LoginPage session exists:', session);
+    console.log('redirect to home since a session already exists:', session);
     redirect('/')
   }
 

@@ -34,7 +34,7 @@ let api_url = process.env['API_URL']
 async function submitFirstAIMessage(reviewId: string, message: string) {
   // Add the first AI message to the backend
   const session = await auth()
-  console.log('submitFirstAIMessage session: ', session)
+  console.log('submitFirstAIMessage')
 
   if (!session || !session.user) return
 
@@ -43,7 +43,7 @@ async function submitFirstAIMessage(reviewId: string, message: string) {
   }
 
   const formData = new FormData()
-  formData.append('user_email', session.user.email)
+  formData.append('user_id', session.user.id)
   formData.append('review_id', reviewId)
   formData.append('message', message)
 
@@ -53,7 +53,6 @@ async function submitFirstAIMessage(reviewId: string, message: string) {
     method: 'POST',
     body: formData
   })
-  console.log('submitFirstAIMessage res: ', res)
 
   if (!res.ok) {
     throw new Error(`HTTP error! status: ${res.status}`)
@@ -157,7 +156,7 @@ export const AI = createAI<AIState, UIState>({
       } else {
         let message_content: string
         if (session.user?.name) {
-          message_content = `Hi ${session.user.name}! Which company of product do you want to talk about today?`
+          message_content = `Hi ${session.user.name}! Which company or tool do you want to talk about today?`
         } else {
           message_content = "Hi I'm Ernest! What's your name?"
         }

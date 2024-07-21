@@ -43,9 +43,12 @@ const customProvider = CredentialsProvider({
       return null
     } else {
       console.log('log in successful from backend. Sending user')
+      const res = await response.json()
+      console.log('======= user_id =======\n', res)
       const user: User = {
-        id: 'user_id_not_used',
-        email: credentials.email as string
+        id: res._id,
+        email: res.email,
+        name: res.name
       }
       return user
     }
@@ -54,12 +57,10 @@ const customProvider = CredentialsProvider({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
-  adapter: <Adapter>(
-    MongoDBAdapter(clientPromise, {
-      databaseName: 'ernest',
-      collections: { Users: 'users' }
-    })
-  ),
+  adapter: <Adapter>MongoDBAdapter(clientPromise, {
+    databaseName: 'ernest',
+    collections: { Users: 'users' }
+  }),
   providers: [Google, customProvider],
   session: { strategy: 'jwt' }
 })

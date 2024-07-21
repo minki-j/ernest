@@ -19,12 +19,15 @@ def root():
 
 @router.post("/add_ai_first_message")
 def add_ai_first_message(
-    user_email: str = Form(...),
+    user_id: str = Form(...),
     review_id: str = Form(...),
     message: str = Form(default=""),
 ):
     print("-->add_ai_first_message")
-    documents: Documents = fetch_document(review_id, user_email)
+    try:
+        documents: Documents = fetch_document(review_id, user_id)
+    except Exception as e:
+        print("Error fetching document: ", e)
 
     documents.add(
         Message(
@@ -43,7 +46,7 @@ def add_ai_first_message(
 
 @router.post("/invoke")
 def reply_to_message(
-    user_email: str = Form(...),
+    user_id: str = Form(...),
     review_id: str = Form(...),
     user_msg: str = Form(default=""),
     test: str = Form(default="false"),
@@ -56,7 +59,7 @@ def reply_to_message(
     if reset:
         delete_document(review_id)
 
-    documents: Documents = fetch_document(review_id, user_email)
+    documents: Documents = fetch_document(review_id, user_id)
 
     if user_msg != "":
         documents.add(
@@ -65,7 +68,6 @@ def reply_to_message(
                 content=user_msg,
             )
         )
-
 
     documents = langgraph_app.invoke(
         {"documents": documents},
