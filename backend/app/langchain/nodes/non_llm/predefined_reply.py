@@ -5,7 +5,7 @@ def generate_last_msg(state: dict[str, Documents]):
     print("\n==>> end_conversation")
     documents = state["documents"]
 
-    documents.state.reply_message = f" The interview session has ended. Thank you for your time {documents.user.name}. You can check the result in the <review> tab. Have a great day! 😊"
+    documents.state.reply_message = f"Your interview is now complete. Thank you for your time {documents.user.name}. You can check the result in the Review tab. Have a great day! 😊"
 
     return {"documents": documents}
 
@@ -58,6 +58,6 @@ def introduction(state: dict[str, Documents]):
     user_name = documents.user.name
     vendor_name = documents.vendor.name
 
-    documents.state.reply_message = f"Hi {user_name}! Thanks for sharing your valuable time and insight on {vendor_name} today. The interview would take roughly 10 mins. There are 5 pre-defined topics I would like to discuss with you regarding your experience with {vendor_name}. If you want to move on to the next topic at any point, just reply \"pass\". Are you ready to begin?"
+    documents.state.reply_message = f"Hi {user_name}! Thanks for sharing your valuable time and insight on {vendor_name} today. The interview would take roughly 10 mins. If you don't want to answer the question, just reply \"pass\". Are you ready to begin?"
 
     return {"documents": documents}

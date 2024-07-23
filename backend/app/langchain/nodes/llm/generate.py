@@ -28,6 +28,7 @@ def update_story(state: dict[str, Documents]):
         """
 You are a journalist at a famous magazine with 40+ years of experience. Your main area of topic is about how customers experienced services, products, and businesses. Your stories are always well-researched and well-written, which a lot of readers appreciate. 
 In this particular task, you'll be refining a story based on the customer's interview responses. You'll receive the customer's replies one by one, along with the preceding story. Your task is to seamlessly weave the reply into the narrative in a way that enhances the overall story. Write the story from the first-person perspective, as if you are the customer. Moreover, the narrative should be engaging and descriptive to captivate readers, much like a compelling review.
+Write the story from the customer's perspective. If recent reply doesn't have enough information to add, just keep the previous story. 
 
 ---
 Here are some examples:
@@ -49,7 +50,7 @@ recent reply: journalist asked <I totally get that, it's really upsetting when s
 updated story: I recently had an awful experience at a Salon. I went in excited to get curtain bangs, but the stylist cut them so short that they're impossible to style. I was really disappointed and frustrated. When I told them I wasn't happy with the cut, they just brushed it off, saying this was standard and that I looked fine. They didn't offer any compensation or solution. It felt so dismissive, like my feelings didn't matter at all. Now I'm stuck waiting for my hair to grow back, and I’ll definitely be looking for a new salon in the future. Would not recommend this place at all!
 
 ---
-OK, now it's your turn!
+OK, now it's your turn! Don't forget writing the story from the customer's perspective and keeping the previous story when the recent reply doesn't have enough information to add. Don't include the information about the interview in the story itself.
 
 previous story: {previous_story}
 recent reply: {recent_reply}
@@ -60,7 +61,7 @@ recent reply: {recent_reply}
 
     updated_story = chain.invoke(
         {
-            "previous_story": documents.review.story,
+            "previous_story": documents.review.story if documents.review.story else "Does not exist since this is the first time generating a story",
             "recent_reply": messages_to_string(
                 documents.review.messages[-2:],
                 ai_role="journalist",
@@ -167,13 +168,13 @@ def generate_reply_refering_other_reviews(state: dict[str, Documents]):
     if not other_reviews:
         return {"documents": documents}
 
-    types_of_topics_from_other_reviews = [review["type"] for review in other_reviews]
+    types_of_topics_from_other_reviews = ", ".join(set(review["type"] for review in other_reviews))
 
     # pick a relevant type from the user message
 
     pick_a_relevant_type_prompt = PromptTemplate.from_template(
         """
-From the following topic types, pick the one that is most relevant to the user's message. If none of them are relevant, select 'none'.
+From the following topic types, pick the one that is most relevant to the user's message. If none of them are relevant, select 'none'. If the user's message does not contain enough context, you may select 'none'.
 
 ---
 topic types: {types_of_topics_from_other_reviews}
@@ -191,13 +192,6 @@ message: {user_message}"""
     ).type
 
     if selected_topic_type == "none":
-        documents.parallel_state.pending_items.append(
-            StateItem(
-                attribute="candidate_reply_message",
-                key="referring_to_kg",
-                value=reply.content,
-            )
-        )
         return {"documents": documents}
 
     if selected_topic_type not in types_of_topics_from_other_reviews:
@@ -222,15 +216,15 @@ message: {user_message}"""
                 examples
 
                 relevant reviews: ["I had a really bad experience at a salon since the stylist cut my hair too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.", "I went to a salon to get curtain bangs, but the stylist cut them so short that they're impossible to style. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon."]
-                user messages: I asked to cut my bang but the stylist cut them too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.
+                recent messages: I asked to cut my bang but the stylist cut them too short. I was really disappointed and frustrated. I had to wait for my hair to grow back and find another salon.
                 reply: "I've heard from 2 other customers that they had a similar experience at the salon. They also had their hair cut too short and were really disappointed. They had to wait for their hair to grow back and find another salon. It's really unfortunate that this happened to you too. I hope you find a better salon next time."
 
                 ---
                 Now it's your turn!
                 relevant reviews: {relevant_reviews}
+                recent messages: {messages}
                 """,
             ),
-            *messages,
         ]
     )
 
@@ -239,15 +233,16 @@ message: {user_message}"""
     reply = chain.invoke(
         {
             "relevant_reviews": relevant_reviews,
+            "messages": messages
         }
     )
 
-    print("    : reply referring_to_kg ->", reply.content)
+    print("    : reply referring_to_knowledge_graph ->", reply.content)
 
     documents.parallel_state.pending_items.append(
         StateItem(
             attribute="candidate_reply_message",
-            key="referring_to_kg",
+            key="referring_to_knowledge_graph",
             value=reply.content,
         )
     )

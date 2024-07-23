@@ -10,14 +10,14 @@ from app.schemas.schemas import State, Role, Message, StateItem
 
 import time
 
-def get_topics_for_vendor(state: dict[str, Documents]):
-    print("\n==>> get_topics_for_vendor")
+def get_other_reviews_from_knowlege_graph(state: dict[str, Documents]):
+    print("\n==>> get_other_reviews_from_knowlege_graph")
     documents = state["documents"]
 
     vendor_name = documents.vendor.name
 
     query = f"""
-    MATCH (s:Salon {{name: "{vendor_name}"}})-[*1..2]-(t:Topic)
+    MATCH (s:Vendor {{name: "{vendor_name.lower()}"}})-[*1..2]-(t:Topic)
     RETURN t AS topic
     """
     neo4j_driver = get_neo4j_driver()
@@ -27,6 +27,13 @@ def get_topics_for_vendor(state: dict[str, Documents]):
         for record in result:
             record_dict = {key: value for key, value in record["topic"].items()}
             result_dict.append(record_dict)
+        if len(result_dict) > 0:
+            print("---------Neo4j query result-----------")
+            print("Total number of nodes: ", len(result_dict))
+            print("Example node: ", result_dict[0])
+            print("-------------------------------------")
+            documents.state["topic_types_from_KG"] = result_dict
+        else: 
+            documents.state["topic_types_from_KG"] = None
 
-        documents.state["topic_types_from_KG"] = result_dict
         return {"documents": documents}

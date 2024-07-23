@@ -13,17 +13,11 @@ from app.langchain.common import llm, chat_model, output_parser, chat_model_open
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 
-class ReplyType(Enum):
-    reaction_only = "reaction_only"
-    question_only = "question_only"
-    reaction_and_question = "reaction_and_question"
-
-
-class DecideReplyType(BaseModel):
+class Reply(BaseModel):
     """The type of reply the customer has given in the interview."""
 
-    reason: str = Field(description="The reason why the chosen type is the best.")
-    type: ReplyType = Field(description="The type of reply the journalist will give.")
+    rationale: str = Field(description="The rationale why the chosen type is the best.")
+    reply: str = Field(description="The final reply to send to the customer.")
 
 
 # ! This doesn't work well. It always returns reaction_and_question. Unreliably returns reaction_only.
@@ -33,21 +27,37 @@ def decide_reply_type(state: dict[str, Documents]):
 
     prompt = PromptTemplate.from_template(
         """
-        As a seasoned journalist with 40+ years of experience at a prestigious magazine, you specialize in customer experience with services, products, and businesses. Your stories are always thoroughly researched and well-written, a fact well-appreciated by many readers.
-        In the upcoming task, you will need to decide whether to merely respond to the customer's reply, solely ask questions without any reaction, or both respond and ask questions. Consider the context of the message and choose the most natural one.
+        Here is the recent conversation of a interview about Next JS:
+        previous conversation:  journalist asked <Hi I'm Ernest! What's your name?>, customer replied <I'm Minki>, journalist asked <Hi Minki ! Before begin the interview, could you let me know which company or tool you are going to talk about?>, customer replied <I want to talk about Next JS>, journalist asked <Hi Minki ! Thanks for sharing your valuable time and insight on Next JS today. The interview would take roughly 10 mins. Are you ready to begin?>, customer replied <Yes, I'm ready>, journalist asked <Awesome! 😊 Can you tell me a bit about your experience with Next JS? What kind of insights or experiences do you have that qualify you to speak on this topic?>, customer replied <It had quite a bit of learning curve since they devide client and server side. I struggled for a week to get a mental model for that architecture. However, if I set up things correctly it's very efficient thanks to the server side rendering.>
 
-        Tip: When the user's last message seems like that the user will continue explaining about the detail, just react only without asking a new question. 
-        
+        What would the journalist's response be? Here are some options that you can use:
+        possible reaction: "You got the point of thier architecture model of Next JS!"
+        possible comment: "Some people mentioned the same problem as you said. They found Next JS learning curve was higher than other frameworks."
+        possible question: "What kind of project did you build with Next JS?"
+
+        rationale: "All three options are useful. However, they need to be edited a bit to fit in a single reply. So I'll change the wordings and combine all of the options"
+        reply: "That's a great point. You got the gist of their architecture. And yes, the learning curve of Next JS can be high. I've been hearing that from quite many people so far. I'm curious, what kind of project did you build with Next JS?"
+        ---
+        Here is the recent conversation of a interview about {topic}:
         previous conversation: {conversation}
-        possible reaction from the journalist: {possible_reaction}
-        possible question from the journalist: {possible_question}
+
+        What would the journalist's response be? Here are some options that you can use:
+        possible reaction: {possible_reaction}
+        possible comment: {possible_comment}
+        possible question: {possible_question}
+        ---
+        ---
+        Keep in mind that you don't have to use all the options. 
+        Make sure that your reply sounds natural when you are mixing different options.
+        Don't be verbose and make sure the interviewer can read your reply quickly. 
         """
     )
 
-    chain = prompt | chat_model_openai_4o.with_structured_output(DecideReplyType)
-    
-    reply_type = chain.invoke(
+    chain = prompt | chat_model_openai_4o.with_structured_output(Reply)
+
+    reulst = chain.invoke(
         {
+            "topic": documents.vendor.name,
             "conversation": messages_to_string(
                 documents.review.messages[-10:],
                 ai_role="journalist",
@@ -55,22 +65,18 @@ def decide_reply_type(state: dict[str, Documents]):
             ),
             "possible_reaction": documents.state.candidate_reply_message["reaction"],
             "possible_question": documents.state.candidate_reply_message["question"],
+            "possible_comment": (
+                documents.state.candidate_reply_message["referring_to_knowledge_graph"]
+                if documents.state.candidate_reply_message.get(
+                    "referring_to_knowledge_graph", None
+                )
+                else "none"
+            ),
         }
     )
-    print("    reply_type:", reply_type.type.value)
+    print("    rationale:", reulst.rationale)
+    print("    reply:", reulst.reply)
 
-    if reply_type.type == ReplyType.reaction_only:
-        documents.state.reply_message = documents.state.candidate_reply_message["reaction"]
-    elif reply_type.type == ReplyType.question_only:
-        documents.state.reply_message = documents.state.candidate_reply_message["question"]
-    elif reply_type.type == ReplyType.reaction_and_question:
-        documents.state.reply_message = f"{documents.state.candidate_reply_message["reaction"]} {documents.state.candidate_reply_message["question"]}"
-
-    if documents.state.candidate_reply_message["referring_to_kg"]:
-        documents.state.reply_message = (
-            documents.state.reply_message
-            + "\n"
-            + documents.state.candidate_reply_message["referring_to_kg"]
-        )
+    documents.state.reply_message = reulst.reply
 
     return {"documents": documents}

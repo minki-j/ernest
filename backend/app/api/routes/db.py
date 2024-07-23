@@ -73,7 +73,6 @@ def get_review_by_user(
     print("===>API CALL: db/getReviewsByUser")
     try:
         review = fetch_reviews_by_user_id(user_id)
-        print(f"==>> review: {review}")
         return review
     except ValueError as e:
         error_msg = str(e)
@@ -129,7 +128,7 @@ def loginByEmail(
     user = authenticate_user(email=email, password=password)
 
     if user:
-        return {"_id": str(user["_id"]), "email": user["email"], "name": user["name"]}
+        return {"_id": str(user["_id"]), "email": user["email"], "name": user.get("name", None)}
     else:
         raise HTTPException(status_code=404, detail="User not found")
 

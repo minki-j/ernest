@@ -11,14 +11,12 @@ from app.langchain.common import chat_model
 from langchain_core.pydantic_v1 import BaseModel, Field
 
 
-
-
 def what_stage_of_chat(state: dict[str, Documents]):
     print("\n==>> what_stage_of_chat")
     documents = state["documents"]
 
     # TODO: change this to LLM call
-    end_conversation = False
+    end_conversation = False if len(documents.review.messages) < 20 else True
 
     if len(documents.review.messages) <= 1 or not documents.vendor.name:
         print("     : start")
